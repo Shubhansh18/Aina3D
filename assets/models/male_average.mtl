@@ -1,0 +1,106 @@
+# Blender 4.4.3 MTL File: 'young man normal bowl cut.blend'
+# www.blender.org
+
+newmtl .HG_Eyes_Inner.003
+Ns 63.117920
+Ka 0.500000 0.500000 0.500000
+Kd 0.495000 0.495000 0.495000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Bump -bm 2.000000 C:/Users/ad1ty/OneDrive/Desktop/3D/Human Generator Ultimate/HGU/textures/eyes/.HG_Eye_Normal.png
+
+newmtl .HG_Eyes_Outer_FAST.003
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl .HG_Eyes_Outer_Refraction.003
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl .HG_Hair_Eye.003
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.028511 0.028511 0.028511
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl .HG_Hair_Face.003
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.028511 0.028511 0.028511
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl .HG_Hair_Head.003
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.028511 0.028511 0.028511
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl .Human.003
+Ns 843.057861
+Ka 1.000000 1.000000 1.000000
+Kd 0.409508 0.272036 0.147251
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+
+newmtl FABRIC_1_FRONT_132296
+Ns 28.763235
+Ka 1.000000 1.000000 1.000000
+Ks 0.075000 0.075000 0.075000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:/Users/ad1ty/OneDrive/Documents/clothing/test/clothes/pant_diffuse_1001.png
+map_Bump C:/Users/ad1ty/OneDrive/Documents/clothing/test/clothes/pant_normal_1001.png
+
+newmtl FABRIC_1_FRONT_153928
+Ns 28.763235
+Ka 1.000000 1.000000 1.000000
+Ks 0.075000 0.075000 0.075000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:/Users/ad1ty/OneDrive/Documents/clothing/test/clothes/tshirt_diffuse_1011.png
+map_Bump C:/Users/ad1ty/OneDrive/Documents/clothing/test/clothes/tshirt_normal_1011.png
+
+newmtl FABRIC_2_FRONT_153933
+Ns 28.763235
+Ka 1.000000 1.000000 1.000000
+Ks 0.075000 0.075000 0.075000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:/Users/ad1ty/OneDrive/Documents/clothing/test/clothes/tshirt_diffuse_1012.png
+map_Bump C:/Users/ad1ty/OneDrive/Documents/clothing/test/clothes/tshirt_normal_1012.png

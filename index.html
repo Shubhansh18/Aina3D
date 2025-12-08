@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aina3D | Fit better, Sell smarter</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        indigo: {
+                            950: '#1e1b4b',
+                            900: '#312E81', // Deep Primary
+                            600: '#4F46E5',
+                            50: '#EEF2FF',
+                        },
+                        coral: {
+                            400: '#F87171', // Soft Secondary
+                            500: '#EF4444', 
+                            100: '#FFEDD5',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        html { scroll-behavior: smooth; }
+        
+        /* Custom Range Slider */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%;
+            background: #F87171; cursor: pointer; margin-top: -8px;
+            box-shadow: 0 4px 6px -1px rgba(248, 113, 113, 0.4); transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: #E0E7FF; border-radius: 2px;
+        }
+        
+        /* Utilities */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .glass-dark {
+            background: rgba(49, 46, 129, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Card Hover Effects */
+        .feature-card:hover { transform: translateY(-5px); }
+    </style>
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/loaders/MTLLoader.js"></script>
+</head>
+
+<body 
+    x-data="AinaApp()" 
+    x-init="init()" 
+    class="bg-indigo-50 text-slate-800 antialiased selection:bg-coral-400 selection:text-white"
+    :class="(currentPage === 'studio' || currentPage === 'profile' || currentPage === 'feedback') ? 'h-screen overflow-hidden' : 'min-h-screen overflow-y-auto'">
+
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+        :class="hasScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-6'">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            
+            <div @click="goToPage('landing')" class="cursor-pointer group flex items-center gap-2 pointer-events-auto">
+                <div class="w-8 h-8 rounded-lg bg-indigo-900 text-white flex items-center justify-center font-bold text-lg shadow-lg group-hover:bg-coral-400 transition-colors">A</div>
+                <span class="font-bold text-xl text-indigo-900 tracking-tight">Aina3D</span>
+            </div>
+            
+            <template x-if="currentPage === 'landing'">
+                <nav class="hidden md:flex items-center gap-6 font-medium text-sm text-slate-600">
+                    <a href="#stats" class="hover:text-indigo-900 transition">Impact</a>
+                    <a href="#features" class="hover:text-indigo-900 transition">Features</a>
+                    <a href="#how-it-works" class="hover:text-indigo-900 transition">How it Works</a>
+                    <a href="#pricing" class="hover:text-indigo-900 transition">Pricing</a>
+                    <button @click="goToPage('about')" class="hover:text-indigo-900 transition">About Us</button>
+                    <button @click="goToPage('profile')" class="px-5 py-2.5 bg-indigo-900 text-white rounded-full hover:bg-coral-400 transition shadow-lg shadow-indigo-900/20">
+                        Try Demo
+                    </button>
+                </nav>
+            </template>
+
+            <div class="flex gap-4" x-show="currentPage === 'studio'">
+                 <button @click="resetView()" class="glass px-4 py-2 rounded-full text-sm font-medium text-indigo-900 hover:bg-white transition-all shadow-sm">
+                    Reset View
+                </button>
+                 <button @click="goToPage('feedback')" class="bg-indigo-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-800 transition-all shadow-lg shadow-indigo-500/30">
+                    Finish & Feedback
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main x-show="currentPage === 'landing'" x-transition.opacity class="w-full">
+        
+        <section class="relative min-h-screen flex items-center pt-10 overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-coral-50">
+            <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center w-full z-10 py-12">
+                
+                <div class="space-y-8">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-100 text-indigo-900 text-xs font-bold uppercase tracking-wide">
+                        <span class="w-2 h-2 rounded-full bg-coral-400 animate-pulse"></span> Beta 1.0
+                    </div>
+                    <div>
+                        <h1 class="text-5xl lg:text-7xl font-bold leading-[1.1] text-indigo-950">
+                            Fit better,<br>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-coral-400">Sell smarter.</span>
+                        </h1>
+                    </div>
+                    <p class="text-lg text-slate-600 max-w-md leading-relaxed">
+                        An AI-powered 3D virtual try-on platform that lets shoppers see how fashion truly fits them before they buy.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <button @click="goToPage('profile')" class="group relative px-8 py-4 bg-indigo-900 text-white rounded-2xl font-semibold overflow-hidden shadow-xl shadow-indigo-900/20 hover:scale-105 transition-transform">
+                            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                            <span class="relative flex items-center gap-2 text-xl">
+                                Start Fitting 
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative h-[500px] lg:h-[500px] w-full bg-gradient-to-br from-slate-900 to-indigo-950 rounded-[3rem] overflow-hidden shadow-2xl border border-slate-700 group">
+                    <div id="hero-canvas" class="absolute inset-0 z-10 w-full h-full cursor-crosshair"></div>
+                    
+                    <div class="absolute top-8 right-8 z-20 glass-dark px-4 py-2 rounded-full flex items-center gap-2 border border-white/10 pointer-events-none">
+                        <div class="w-2 h-2 rounded-full bg-coral-400 animate-pulse"></div>
+                        <span class="text-xs font-bold text-white uppercase tracking-widest">AI Mesh Active</span>
+                    </div>
+
+                    <div class="absolute bottom-8 left-10 z-20 pointer-events-none transition-opacity duration-300 group-hover:opacity-50">
+                        <h3 class="text-2xl font-bold text-white mb-1">TrueFit Engine</h3>
+                        <p class="text-sm text-indigo-200">Real-time body topology analysis.</p>
+                        <div class="flex items-center gap-2 mt-3">
+                            <span class="px-2 py-1 rounded bg-white/10 text-[10px] text-white font-mono border border-white/10">INTERACTIVE</span>
+                            <p class="text-xs text-coral-400 font-mono">Move cursor to scan • Click to capture</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-indigo-900 text-white py-12 relative overflow-hidden">
+            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 30px 30px;"></div>
+            
+            <div class="max-w-7xl mx-auto px-6 relative z-10">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center divide-white/10 lg:divide-x">
+                    <div class="flex flex-col items-center gap-3">
+                        <span class="text-3xl">⚡</span>
+                        <h3 class="font-bold text-lg">Instant 3D Avatar Creation</h3>
+                    </div>
+                    <div class="flex flex-col items-center gap-3">
+                        <span class="text-3xl">🔌</span>
+                        <h3 class="font-bold text-lg">Plug and Play Model</h3>
+                    </div>
+                    <div class="flex flex-col items-center gap-3">
+                        <span class="text-3xl">🇮🇳</span>
+                        <h3 class="font-bold text-lg">India-First Sizing</h3>
+                    </div>
+                    <div class="flex flex-col items-center gap-3">
+                        <span class="text-3xl">📈</span>
+                        <h3 class="font-bold text-lg">Loss Reduction Engine</h3>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="stats" class="py-24 bg-white">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="max-w-3xl mx-auto text-center mb-16">
+                    <h2 class="text-4xl font-bold text-indigo-950 mb-6">Fashion e-commerce is surging,<br>but profitability is slipping.</h2>
+                    <p class="text-lg text-slate-600">
+                        Even as online sales soar, fashion brands are bleeding money due to an increase in returns caused by poor fit and sizing issues—eating directly into your margins.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-indigo-50 rounded-3xl p-8 border border-indigo-100 text-center hover:shadow-xl transition-shadow duration-300">
+                        <div class="inline-block p-4 rounded-full bg-white shadow-sm mb-6 text-4xl">🌍</div>
+                        <h3 class="text-5xl font-bold text-indigo-900 mb-2">$800B+</h3>
+                        <p class="text-slate-600 font-medium">Global e-commerce apparel in 2025 is still sold through flat photos and generic size charts.</p>
+                    </div>
+
+                    <div class="bg-indigo-50 rounded-3xl p-8 border border-indigo-100 text-center hover:shadow-xl transition-shadow duration-300 relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-coral-400 opacity-0 group-hover:opacity-5 transition duration-300"></div>
+                        <div class="inline-block p-4 rounded-full bg-white shadow-sm mb-6 text-4xl">💸</div>
+                        <h3 class="text-5xl font-bold text-coral-500 mb-2">12-15%</h3>
+                        <p class="text-slate-600 font-medium">Profits lost to returns & logistics.</p>
+                    </div>
+
+                    <div class="bg-indigo-50 rounded-3xl p-8 border border-indigo-100 text-center hover:shadow-xl transition-shadow duration-300">
+                        <div class="inline-block p-4 rounded-full bg-white shadow-sm mb-6 text-4xl">📦</div>
+                        <h3 class="text-5xl font-bold text-indigo-900 mb-2">1 in 4</h3>
+                        <p class="text-slate-600 font-medium"> Orders of online apparel returns are caused purely by wrong size and fit, not product quality in India, global avg is 1 in 6</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="py-24 bg-slate-50 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-200 rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+            
+            <div class="max-w-7xl mx-auto px-6 relative z-10">
+                <div class="text-center mb-16">
+                    <span class="text-coral-500 font-bold tracking-wider uppercase text-sm">The Engine Behind Better Fits</span>
+                    <h2 class="text-4xl font-bold text-indigo-950 mt-3">Why Aina3D?</h2>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8 lg:gap-12">
+                    
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 feature-card transition-transform duration-300">
+                        <div class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-3xl mb-6">👤</div>
+                        <h3 class="text-2xl font-bold text-indigo-950 mb-4">True-to-life 3D Avatars</h3>
+                        <p class="text-slate-600 leading-relaxed">
+                            Customers can generate a 3D avatar that mirrors their body shape using a few simple inputs (gender, basic measurements and/or a guided photo flow). This avatar becomes their “digital trial room” across your catalog.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 feature-card transition-transform duration-300">
+                        <div class="w-14 h-14 bg-coral-100 rounded-2xl flex items-center justify-center text-3xl mb-6">✨</div>
+                        <h3 class="text-2xl font-bold text-indigo-950 mb-4">AI-Powered Size & Fit Recommendations</h3>
+                        <p class="text-slate-600 leading-relaxed">
+                            Our engine compares each shopper’s avatar with garment specs and return patterns to suggest the most accurate size—showing exactly how it will fit (snug, regular, or relaxed).
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 feature-card transition-transform duration-300">
+                        <div class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-3xl mb-6">💾</div>
+                        <h3 class="text-2xl font-bold text-indigo-950 mb-4">Personalised Profiles & Saved Fits</h3>
+                        <p class="text-slate-600 leading-relaxed">
+                           Shoppers can save their avatar, preferred fits and size history (with email/mobile OTP sign-in) so they don’t have to guess again. For brands, this builds a high-intent, first-party data layer around fit and repeat behaviour.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 feature-card transition-transform duration-300">
+                        <div class="w-14 h-14 bg-coral-100 rounded-2xl flex items-center justify-center text-3xl mb-6">📊</div>
+                        <h3 class="text-2xl font-bold text-indigo-950 mb-4">AI Powered Analytics</h3>
+                        <p class="text-slate-600 leading-relaxed">
+                            Get live intel on body-type trends by region and size bands. Plan inventory and new collections based on how your customers’ bodies actually look—not just spreadsheets.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="py-24 bg-white relative">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <span class="text-coral-500 font-bold tracking-wider uppercase text-sm">Seamless Experience</span>
+                    <h2 class="text-4xl font-bold text-indigo-950 mt-3 mb-6">How Aina3D Works?</h2>
+                    <p class="text-lg text-slate-600">
+                        Aina3D lives quietly behind your product pages as a lightweight plugin. Customers just tap “Find My Size with Aina3D”—the rest happens in a smooth four-step flow.
+                    </p>
+                </div>
+
+                <div class="mb-20">
+                    <h3 class="text-2xl font-bold text-indigo-900 mb-10 text-center">4-Step User Flow</h3>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 relative group hover:-translate-y-1 transition-transform">
+                            <div class="w-10 h-10 bg-indigo-900 text-white rounded-full flex items-center justify-center font-bold mb-4">1</div>
+                            <h4 class="font-bold text-lg text-indigo-950 mb-2">Choose Profile</h4>
+                            <p class="text-sm text-slate-600">Shoppers select gender and a few basics like height & weight.</p>
+                        </div>
+                        <div class="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 relative group hover:-translate-y-1 transition-transform">
+                            <div class="w-10 h-10 bg-indigo-900 text-white rounded-full flex items-center justify-center font-bold mb-4">2</div>
+                            <h4 class="font-bold text-lg text-indigo-950 mb-2">Add Data</h4>
+                            <p class="text-sm text-slate-600">Enter 3–5 key measurements or take a privacy-safe guided photo for auto-estimation.</p>
+                        </div>
+                        <div class="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 relative group hover:-translate-y-1 transition-transform">
+                            <div class="w-10 h-10 bg-indigo-900 text-white rounded-full flex items-center justify-center font-bold mb-4">3</div>
+                            <h4 class="font-bold text-lg text-indigo-950 mb-2">Avatar Created</h4>
+                            <p class="text-sm text-slate-600">Aina3D creates a lifelike 3D avatar in seconds, based on the unique body profile.</p>
+                        </div>
+                        <div class="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 relative group hover:-translate-y-1 transition-transform">
+                            <div class="w-10 h-10 bg-indigo-900 text-white rounded-full flex items-center justify-center font-bold mb-4">4</div>
+                            <h4 class="font-bold text-lg text-indigo-950 mb-2">Smart Suggestion</h4>
+                            <p class="text-sm text-slate-600">Recommends ideal size, shows expected fit, and flags pressure points.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-950 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-800 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
+                    
+                    <div class="relative z-10 grid lg:grid-cols-4 gap-8 divide-y lg:divide-y-0 lg:divide-x divide-indigo-800/50">
+                        <div class="px-4">
+                            <h4 class="font-bold text-coral-400 mb-2">Quick Setup</h4>
+                            <p class="text-sm text-indigo-200">One-time integration via JS/SDK or API.</p>
+                        </div>
+                        <div class="px-4 pt-4 lg:pt-0">
+                            <h4 class="font-bold text-coral-400 mb-2">Compatible Everywhere</h4>
+                            <p class="text-sm text-indigo-200">Works seamlessly with Shopify, WooCommerce, and custom platforms.</p>
+                        </div>
+                        <div class="px-4 pt-4 lg:pt-0">
+                            <h4 class="font-bold text-coral-400 mb-2">Lightweight & Fast</h4>
+                            <p class="text-sm text-indigo-200">Edge‑optimized calls ensure minimal impact on page load.</p>
+                        </div>
+                        <div class="px-4 pt-4 lg:pt-0">
+                            <h4 class="font-bold text-coral-400 mb-2">Developer-Friendly</h4>
+                            <p class="text-sm text-indigo-200">Dedicated sandbox environment for testing.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing" class="py-24 bg-slate-50 relative">
+            <div class="max-w-[1250px] mx-auto px-4 sm:px-6">
+                <div class="text-center mb-16">
+                    <span class="text-coral-500 font-bold tracking-wider uppercase text-sm">Choose the perfect fit</span>
+                    <h2 class="text-4xl font-bold text-indigo-950 mt-3">Transparent Pricing</h2>
+                </div>
+
+                <div class="flex flex-wrap justify-center items-start gap-6">
+                    
+                    <div class="w-full sm:w-[320px] bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col relative">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-bold text-slate-500">First Believers</h3>
+                            <p class="text-xs text-slate-400">Perfect for pilots</p>
+                        </div>
+                        <div class="mb-6">
+                            <span class="text-3xl font-bold text-indigo-900">₹0</span>
+                            <span class="text-sm text-slate-500">/ 14 days</span>
+                        </div>
+                        <button class="w-full py-2 border-2 border-indigo-900 text-indigo-900 rounded-lg font-bold hover:bg-indigo-50 transition mb-6">Start Free Pilot</button>
+                        
+                        <div class="space-y-6 flex-1 text-sm text-slate-600">
+                            <div>
+                                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Included</h4>
+                                <ul class="space-y-2">
+                                    <li class="flex items-center gap-2">
+                                        <span class="text-indigo-500">✓</span> 5 Active SKUs
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <span class="text-indigo-500">✓</span> 3,000 Fit Trials
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="pt-4 border-t border-slate-100">
+                                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Features</h4>
+                                <ul class="space-y-2 text-xs text-slate-500">
+                                    <li>• Standard widget & flows</li>
+                                    <li>• Basic dashboard</li>
+                                    <li>• Email support</li>
+                                    <li>• "Powered by Aina3D" branding</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full sm:w-[320px] bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col relative">
+                        <div class="mb-4">
+                            <h3 class="text-xl font-bold text-indigo-900">Launch</h3>
+                            <p class="text-xs text-slate-400">First serious experiment</p>
+                        </div>
+                        <div class="mb-6">
+                            <span class="text-3xl font-bold text-indigo-900">₹9,999</span>
+                            <span class="text-sm text-slate-500">/ month</span>
+                        </div>
+                        <button class="w-full py-3 bg-indigo-900 text-white rounded-lg font-bold hover:bg-indigo-800 transition mb-6 shadow-lg shadow-indigo-100">Get Started</button>
+                        
+                        <div class="space-y-6 flex-1 text-sm text-slate-600">
+                            <div>
+                                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Included</h4>
+                                <ul class="space-y-2">
+                                    <li class="flex items-center gap-2">
+                                        <span class="text-indigo-500">✓</span> 5 Active SKUs
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <span class="text-indigo-500">✓</span> 5,000 Fit Trials
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Extra @</h4>
+                                <ul class="space-y-2">
+                                    <li class="flex items-center gap-2"><span class="text-coral-500 font-bold">₹0.50</span> / extra trial</li>
+                                    <li class="flex items-center gap-2"><span class="text-coral-500 font-bold">₹800</span> / extra SKU</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="pt-4 border-t border-slate-100">
+                                <h4 class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest mb-3">Everything in First Believers, plus:</h4>
+                                <ul class="space-y-2 text-xs text-slate-500">
+                                    <li>• Basic body-type insights</li>
+                                    <li>• Email + POC chat support</li>
+                                    <li>• Implementation checklist</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full sm:w-[320px] bg-white rounded-2xl p-6 border-2 border-coral-400 shadow-2xl relative flex flex-col transform md:scale-105 z-10">
+                        <div class="absolute top-0 right-0 bg-coral-400 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg uppercase tracking-wide">Most Popular</div>
+                        <div class="mb-4">
+                            <h3 class="text-2xl font-bold text-indigo-900">Growth</h3>
+                            <p class="text-xs text-slate-400">Drop returns for real</p>
+                        </div>
+                        <div class="mb-6">
+                            <span class="text-4xl font-bold text-indigo-900">₹24,999</span>
+                            <span class="text-sm text-slate-500">/ month</span>
+                        </div>
+                        <button class="w-full py-4 bg-coral-400 text-white rounded-lg font-bold hover:bg-coral-500 transition mb-8 shadow-xl shadow-coral-200">Get Started</button>
+                        
+                        <div class="space-y-6 flex-1 text-sm">
+                            <div>
+                                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Included</h4>
+                                <ul class="space-y-2 font-medium text-slate-800">
+                                    <li class="flex items-center gap-2">
+                                        <span class="text-coral-500">✓</span> 20 Active SKUs
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <span class="text-coral-500">✓</span> 20,000 Fit Trials
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Extra @</h4>
+                                <ul class="space-y-2 text-slate-600">
+                                    <li class="flex items-center gap-2"><span class="text-indigo-600 font-bold">₹0.35</span> / extra trial</li>
+                                    <li class="flex items-center gap-2"><span class="text-indigo-600 font-bold">₹500</span> / extra SKU</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="pt-4 border-t border-slate-100">
+                                <h4 class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest mb-2">Everything in Launch, plus:</h4>
+                                <ul class="space-y-2 text-xs text-slate-600">
+                                    <li class="flex items-start gap-2"><span>🔹</span> Return reason mapping</li>
+                                    <li class="flex items-start gap-2"><span>🔹</span> User Tracking (New vs Repeat)</li>
+                                    <li class="flex items-start gap-2"><span>🔹</span> Monthly optimisation call</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full sm:w-[320px] bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col relative">
+                        <div class="mb-4">
+                            <h3 class="text-xl font-bold text-indigo-900">Scale</h3>
+                            <p class="text-xs text-slate-400">High-SKU brands</p>
+                        </div>
+                        <div class="mb-6">
+                            <span class="text-3xl font-bold text-indigo-900">₹59,999</span>
+                            <span class="text-sm text-slate-500">/ month</span>
+                        </div>
+                        <button class="w-full py-3 bg-white border border-indigo-200 text-indigo-900 rounded-lg font-bold hover:border-indigo-900 transition mb-6">Contact Sales</button>
+                        
+                        <div class="space-y-6 flex-1 text-sm text-slate-600">
+                            <div>
+                                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Included</h4>
+                                <ul class="space-y-2">
+                                    <li class="flex items-center gap-2">
+                                        <span class="text-indigo-500">✓</span> 100 Active SKUs
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <span class="text-indigo-500">✓</span> 75,000 Fit Trials
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Extra @</h4>
+                                <ul class="space-y-2">
+                                    <li class="flex items-center gap-2"><span class="text-indigo-600 font-bold">₹0.25</span> / extra trial</li>
+                                    <li class="flex items-center gap-2"><span class="text-indigo-600 font-bold">₹240</span> / extra SKU</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="pt-4 border-t border-slate-100">
+                                <h4 class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest mb-2">Everything in Growth, plus:</h4>
+                                <ul class="space-y-2 text-xs text-slate-500">
+                                    <li>• Multi-storefront support</li>
+                                    <li>• Quarterly "Fit & Returns" report</li>
+                                    <li>• Dedicated CSM & Priority Support</li>
+                                    <li>• White-label / Custom AI Tuning</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full sm:w-[320px] bg-slate-50 rounded-2xl p-6 border border-slate-200 transition-all flex flex-col relative grayscale hover:grayscale-0">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-bold text-indigo-900">Enterprise</h3>
+                            <p class="text-xs text-slate-400">Compliance & Control</p>
+                        </div>
+                        <div class="mb-6">
+                            <span class="text-2xl font-bold text-indigo-900">₹1.5L+</span>
+                            <span class="text-sm text-slate-500">/ month</span>
+                        </div>
+                        <button class="w-full py-2 text-slate-500 border border-slate-300 rounded-lg font-bold hover:text-indigo-900 hover:border-indigo-900 transition mb-6">Contact Sales</button>
+                        
+                        <div class="space-y-6 flex-1 text-sm text-slate-600">
+                            <div>
+                                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Included</h4>
+                                <ul class="space-y-2">
+                                    <li class="flex items-center gap-2">
+                                        <span class="text-slate-400">✓</span> 300+ Active SKUs
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <span class="text-slate-400">✓</span> 3L+ Fit Trials
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Extra @</h4>
+                                <ul class="space-y-2">
+                                    <li class="flex items-center gap-2"><span class="text-slate-600 font-bold">₹0.15</span> / extra trial</li>
+                                    <li class="flex items-center gap-2"><span class="text-slate-600 font-bold">₹150</span> / extra SKU</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="pt-4 border-t border-slate-200">
+                                <h4 class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest mb-2">Everything in Scale, plus:</h4>
+                                <ul class="space-y-2 text-xs text-slate-500">
+                                    <li>• Custom SLA & Uptime</li>
+                                    <li>• Access to user databases</li>
+                                    <li>• Custom fitting room (Branded)</li>
+                                    <li>• Dedicated Solutions Engineer</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section id="faq" class="py-24 bg-white relative overflow-hidden" x-data="{ activeAccordion: null }">
+            <div class="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-indigo-200 to-transparent"></div>
+            <div class="absolute -left-20 top-40 w-72 h-72 bg-indigo-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+            <div class="absolute -right-20 bottom-40 w-72 h-72 bg-coral-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+
+            <div class="max-w-7xl mx-auto px-6 relative z-10">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <span class="text-coral-500 font-bold tracking-wider uppercase text-sm">Got Questions?</span>
+                    <h2 class="text-4xl font-bold text-indigo-950 mt-3 mb-4">Frequently Asked Questions</h2>
+                    <p class="text-lg text-slate-600">
+                        (And some that you didn't ask but we answered anyway)
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6 items-start">
+                    
+                    <div class="space-y-4">
+                        
+                        <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 1 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 1 ? activeAccordion = null : activeAccordion = 1" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">1. What exactly does Aina3D do?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 1 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 1" x-collapse x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                Okay fine, we get it - you don’t want to read the whole landing page. Just call us! Or, if you must, here’s the short version: Aina3D helps your customers find the right size first time with 3D avatars and AI recommendations, so returns drop and conversions rise.
+                            </div>
+                        </div>
+
+                        <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 2 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 2 ? activeAccordion = null : activeAccordion = 2" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">2. How will this show up on my website?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 2 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 2" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                Your customers will see a button: ‘Find Your Size with Aina3D.’ One click, and the avatar and size recommendations slide in smoothly. <br><span class="italic text-coral-500 block mt-2 text-xs">(singing to ourselves; I AM A SMOOTH OPERATOR)</span>
+                            </div>
+                        </div>
+
+                        <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 3 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 3 ? activeAccordion = null : activeAccordion = 3" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">3. Will creating an avatar hurt conversions?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 3 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 3" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                The flow is designed to take under a minute (and we mean it - not like Maggi). Once a user’s avatar is set up, it’s saved, letting them try on as many products as they like, hassle-free.
+                            </div>
+                        </div>
+
+                        <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 4 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 4 ? activeAccordion = null : activeAccordion = 4" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">4. What problem does this solve immediately?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 4 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 4" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                You will have reduced size-related returns and actually know what sizes and fits your customers want, instead of operating on inventory intuition. Data > your 2am thoughts.
+                            </div>
+                        </div>
+
+                        <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 5 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 5 ? activeAccordion = null : activeAccordion = 5" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">5. How much tech work is needed?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 5 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 5" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                It’s a lightweight plugin, JS snippet, or API integration. Your tech team connects the catalog and size data - we take care of the heavy lifting from there, kind of like how your mom tackles Diwali cleaning: everything, everywhere, with terrifying efficiency.
+                            </div>
+                        </div>
+
+                         <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 6 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 6 ? activeAccordion = null : activeAccordion = 6" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">6. Do I need to change my size charts?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 6 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 6" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                No, we work with your current size charts and garment measurements, and then show you insights that can guide future tweaks if you want. Our future predictions > whatever your Zodiac app told you this morning.
+                            </div>
+                        </div>
+
+                        <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 7 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 7 ? activeAccordion = null : activeAccordion = 7" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">7. Is customer data safe?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 7 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 7" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                Yes. We lock your data in a locker inside another locker, behind a 13-digit code, which sits in a vault, inside a bunker... and then we shoot it off on a rocket.
+                                <br><br>
+                                On another note, all data is encrypted, used only for fit and analytics, never sold, and we can anonymise or autodelete personal data according to your policy.
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="space-y-4">
+
+                        <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 8 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 8 ? activeAccordion = null : activeAccordion = 8" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">8. Can it work on my Mobile App?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 8 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 8" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                Currently, Aina3D works as a plugin for your website. If your brand has a mobile app, we’re not live on apps just yet, but we’re working towards expanding to mobile platforms. Hang tight, we’re not ghosting you; we’re just gonna be fashionably late.
+                            </div>
+                        </div>
+
+                        <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 9 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 9 ? activeAccordion = null : activeAccordion = 9" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">9. What results should I expect?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 9 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 9" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                Higher add-to-cart and conversion rates, fewer size-related returns, and a clearer understanding of which sizes and fits to stock. We are completely fine with your operations guy to be in love with us.
+                            </div>
+                        </div>
+
+                        <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 10 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 10 ? activeAccordion = null : activeAccordion = 10" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">10. How long to go live?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 10 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 10" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                Once data is ready, a focused team can get the pilot live in days, not months. We’re not drive-thru-fast, but we’re not week-long fermentation slow either. Think fresh-baked bread: warm, timely, and worth it.
+                            </div>
+                        </div>
+
+                        <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 11 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 11 ? activeAccordion = null : activeAccordion = 11" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">11. Does it work for all categories?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 11 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 11" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                Yes (denim, ethnic, oversized, etc.). Our engine is category-aware. We tune recommendations based on garment type and desired fit. We get you, just how your Instagram algo gets you (& this is not even embarrassing).
+                            </div>
+                        </div>
+
+                         <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 12 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 12 ? activeAccordion = null : activeAccordion = 12" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">12. Will Aina3D slow down my site?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 12 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 12" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                No. The plugin is optimised to be lightweight, loaded on demand and cached efficiently. From a techie to a non-techie who’s writing this, my CTO made a mother promise about this.
+                            </div>
+                        </div>
+
+                         <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 13 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 13 ? activeAccordion = null : activeAccordion = 13" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">13. Can I see performance analytics?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 13 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 13" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                Sorry, that feature isn’t available yet, but our team is working night and day. You count till 9,45,88,109,185…and we’ll be there. Also yes you can call that number anytime for a demo too.
+                            </div>
+                        </div>
+
+                         <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 14 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
+                            <button @click="activeAccordion === 14 ? activeAccordion = null : activeAccordion = 14" class="w-full flex justify-between items-center p-5 text-left">
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">14. What support will I get?</span>
+                                <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 14 ? 'rotate-180 text-coral-500' : ''">▼</span>
+                            </button>
+                            <div x-show="activeAccordion === 14" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
+                                Our support will be like a full-coverage bra and yes, we’ll get you the right size too. You’ll have a dedicated point of contact who’ll guide you through onboarding, setup, and all ongoing optimisation.
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="bg-indigo-950 text-white pt-16 pb-8 border-t border-indigo-900 relative z-10">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-white text-indigo-900 flex items-center justify-center font-bold text-lg">A</div>
+                            <span class="font-bold text-xl tracking-tight">Aina3D</span>
+                        </div>
+                        <p class="text-indigo-300 text-sm leading-relaxed max-w-xs">
+                            Helping fashion brands reduce returns and boost conversions with AI-powered virtual try-on technology.
+                        </p>
+                        
+                        <div class="flex gap-4">
+                            <a href="#" class="w-8 h-8 rounded-full bg-indigo-900 flex items-center justify-center text-indigo-300 hover:bg-coral-400 hover:text-white transition-all">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                            </a>
+                            <a href="#" class="w-8 h-8 rounded-full bg-indigo-900 flex items-center justify-center text-indigo-300 hover:bg-coral-400 hover:text-white transition-all">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+                            </a>
+                            <a href="#" class="w-8 h-8 rounded-full bg-indigo-900 flex items-center justify-center text-indigo-300 hover:bg-coral-400 hover:text-white transition-all">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-white mb-6">Product</h4>
+                        <ul class="space-y-4 text-sm text-indigo-300">
+                            <li><a href="#stats" class="hover:text-coral-400 hover:translate-x-1 inline-block transition-all">Impact</a></li>
+                            <li><a href="#features" class="hover:text-coral-400 hover:translate-x-1 inline-block transition-all">Features</a></li>
+                            <li><a href="#how-it-works" class="hover:text-coral-400 hover:translate-x-1 inline-block transition-all">How it works</a></li>
+                            <li><a href="#pricing" class="hover:text-coral-400 hover:translate-x-1 inline-block transition-all">Pricing</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold text-white mb-6">Company</h4>
+                        <ul class="space-y-4 text-sm text-indigo-300">
+                            <li><button @click="goToPage('about')" class="hover:text-coral-400 hover:translate-x-1 inline-block transition-all">About Us</button></li>
+                            <li><a href="#faq" class="hover:text-coral-400 hover:translate-x-1 inline-block transition-all">FAQs</a></li>
+                            <li><a href="#" class="hover:text-coral-400 hover:translate-x-1 inline-block transition-all opacity-50 cursor-not-allowed" title="Coming Soon">Careers</a></li>
+                            <li><a href="#" class="hover:text-coral-400 hover:translate-x-1 inline-block transition-all opacity-50 cursor-not-allowed" title="Coming Soon">Blog</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold text-white mb-6">Contact</h4>
+                        <ul class="space-y-4 text-sm text-indigo-300">
+                            <li class="flex items-start gap-3">
+                                <span class="text-coral-400">📧</span>
+                                <a href="mailto:hello@aina3d.com" class="hover:text-white transition-colors">hello@aina3d.com</a>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="text-coral-400">📍</span>
+                                <span>Bengaluru, India</span>
+                            </li>
+                        </ul>
+                        
+                        <div class="mt-8 pt-6 border-t border-indigo-900">
+                            <h4 class="font-bold text-white text-xs uppercase tracking-widest mb-4">Legal</h4>
+                            <ul class="space-y-2 text-xs text-indigo-400">
+                                <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+                                <li><a href="#" class="hover:text-white transition">Terms of Service</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-indigo-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-indigo-400">
+                    <p>&copy; 2025 Aina3D Technologies. All rights reserved.</p>
+                    <p class="flex items-center gap-1">Made with <span class="text-coral-500 text-lg leading-none">♥</span> in India</p>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <section x-show="currentPage === 'about'" x-transition.opacity class="min-h-screen bg-indigo-50 w-full pt-24 pb-20">
+        
+        <div class="fixed inset-0 opacity-[0.03] pointer-events-none" 
+             style="background-image: linear-gradient(#312e81 1px, transparent 1px), linear-gradient(90deg, #312e81 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            
+            <div class="text-center max-w-3xl mx-auto mb-20">
+                <button @click="goToPage('landing')" class="inline-flex items-center gap-2 text-sm font-bold text-indigo-400 hover:text-indigo-900 mb-6 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back to Home
+                </button>
+                <h1 class="text-4xl md:text-6xl font-bold text-indigo-950 mb-6">Built by obsessed humans,<br>for humans.</h1>
+                <p class="text-xl text-slate-600 leading-relaxed">
+                    The sizing problem isn't just code, or just fashion, or just 3D. It's all of them crashing together. That's why we built a team that speaks every language involved.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 lg:gap-12">
+
+                <div class="bg-white rounded-[2rem] p-8 border border-indigo-100 shadow-xl shadow-indigo-100/50 hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-colors group-hover:bg-indigo-100"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="w-24 h-24 rounded-2xl overflow-hidden shadow-lg border-2 border-white relative">
+                                <img src="assets/team/arihant.jpg" alt="Arihant" class="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition duration-500 transform group-hover:scale-110">
+                            </div>
+                            <div class="text-3xl bg-white p-2 rounded-lg shadow-sm border border-slate-100">🚀</div>
+                        </div>
+
+                        <h3 class="text-2xl font-bold text-indigo-950">Arihant</h3>
+                        <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & CEO • Business & GTM</p>
+                        
+                        <p class="text-slate-600 mb-8 leading-relaxed text-sm">
+                            The chaos-to-clarity guy. After years of working with fashion and D2C brands on growth, he now lives inside dashboards, turning India’s sizing drama into clean GTM experiments and real money saved for partners.
+                        </p>
+
+                        <div class="flex gap-4 pt-6 border-t border-slate-100">
+                            <a href="#" class="text-slate-400 hover:text-[#0077b5] transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+                            <a href="#" class="text-slate-400 hover:text-[#E4405F] transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2rem] p-8 border border-indigo-100 shadow-xl shadow-indigo-100/50 hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-coral-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-colors group-hover:bg-coral-100"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="w-24 h-24 rounded-2xl overflow-hidden shadow-lg border-2 border-white relative">
+                                <img src="assets/team/amrita.jpg" alt="Amrita" class="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition duration-500 transform group-hover:scale-110">
+                            </div>
+                            <div class="text-3xl bg-white p-2 rounded-lg shadow-sm border border-slate-100">👗</div>
+                        </div>
+
+                        <h3 class="text-2xl font-bold text-indigo-950">Amrita</h3>
+                        <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & CMO • Fashion & Brand</p>
+                        
+                        <p class="text-slate-600 mb-8 leading-relaxed text-sm">
+                            Our in-house fashion brain and brand therapist. She translates Aina3D’s tech into language that designers and merchandisers actually want on their next collection—obsessing over silhouettes and how Indian shoppers buy.
+                        </p>
+
+                        <div class="flex gap-4 pt-6 border-t border-slate-100">
+                             <a href="#" class="text-slate-400 hover:text-[#0077b5] transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+                             <a href="#" class="text-slate-400 hover:text-[#E4405F] transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2rem] p-8 border border-indigo-100 shadow-xl shadow-indigo-100/50 hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-colors group-hover:bg-indigo-100"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="w-24 h-24 rounded-2xl overflow-hidden shadow-lg border-2 border-white relative">
+                                <img src="assets/team/aditya.jpg" alt="Aditya" class="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition duration-500 transform group-hover:scale-110">
+                            </div>
+                            <div class="text-3xl bg-white p-2 rounded-lg shadow-sm border border-slate-100">🧊</div>
+                        </div>
+
+                        <h3 class="text-2xl font-bold text-indigo-950">Adi</h3>
+                        <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & C3DO • Avatar Systems</p>
+                        
+                        <p class="text-slate-600 mb-8 leading-relaxed text-sm">
+                            The 3D nerd who treats every pixel like fabric. With a background in digital humans and simulation, he makes sure Aina3D avatars move, drape, and crease like real clothes on real bodies—not just pretty renders.
+                        </p>
+
+                        <div class="flex gap-4 pt-6 border-t border-slate-100">
+                             <a href="#" class="text-slate-400 hover:text-[#0077b5] transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+                             <a href="#" class="text-slate-400 hover:text-[#E4405F] transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2rem] p-8 border border-indigo-100 shadow-xl shadow-indigo-100/50 hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-colors group-hover:bg-indigo-100"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="w-24 h-24 rounded-2xl overflow-hidden shadow-lg border-2 border-white relative">
+                                <img src="assets/team/shubhansh.jpg" alt="Shubhansh" class="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition duration-500 transform group-hover:scale-110">
+                            </div>
+                            <div class="text-3xl bg-white p-2 rounded-lg shadow-sm border border-slate-100">💻</div>
+                        </div>
+
+                        <h3 class="text-2xl font-bold text-indigo-950">Shubhansh</h3>
+                        <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & CTO • Tech & Product</p>
+                        
+                        <p class="text-slate-600 mb-8 leading-relaxed text-sm">
+                            The quietly deadly engineer behind the curtain. He’s built products across stacks and now makes sure Aina3D plugs into your site without breaking speed or UX—so marketers see uplift and devs don’t complain.
+                        </p>
+
+                        <div class="flex gap-4 pt-6 border-t border-slate-100">
+                             <a href="#" class="text-slate-400 hover:text-[#0077b5] transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+                             <a href="#" class="text-slate-400 hover:text-[#E4405F] transition"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-20 p-8 rounded-3xl bg-indigo-950 text-white text-center relative overflow-hidden">
+                 <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-800 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
+                 <div class="relative z-10 max-w-2xl mx-auto">
+                    <h2 class="text-2xl font-bold mb-4">Why this team?</h2>
+                    <p class="text-indigo-200 text-lg mb-8">
+                        Most size tools are built by just engineers or just fashion folks. We are the rare mix of both. We don't just build code; we build confidence.
+                    </p>
+                    <button @click="goToPage('landing')" class="px-8 py-3 bg-coral-400 text-white font-bold rounded-full hover:bg-coral-500 transition shadow-lg shadow-coral-400/20">
+                        See what we built
+                    </button>
+                 </div>
+            </div>
+
+        </div>
+    </section>
+
+    <div x-show="currentPage === 'profile'" x-cloak x-transition:enter="transition ease-out duration-300" class="fixed inset-0 z-40 bg-white flex items-center justify-center p-4">
+        <div class="w-full max-w-md">
+            <div class="flex justify-between items-center mb-8">
+                <button @click="goToPage('landing')" class="text-slate-400 hover:text-indigo-900 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </button>
+                <div class="flex gap-2">
+                    <div class="h-1 w-8 rounded-full bg-indigo-900"></div>
+                    <div class="h-1 w-8 rounded-full" :class="profileStep > 1 ? 'bg-indigo-900' : 'bg-slate-200'"></div>
+                </div>
+            </div>
+
+            <div x-show="profileStep === 1" x-transition:enter="transition ease-out duration-300 transform translate-x-4">
+                <h2 class="text-3xl font-bold text-indigo-900 mb-2">First things first.</h2>
+                <p class="text-slate-500 mb-8">Select your body frame to initialize the model.</p>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button @click="setGender('male')" 
+                        class="p-6 rounded-2xl border-2 transition-all duration-200 flex flex-col items-center gap-3"
+                        :class="userProfile.gender === 'male' ? 'border-indigo-600 bg-indigo-50 shadow-lg' : 'border-slate-100 hover:border-indigo-200'">
+                        <span class="text-4xl">👨</span>
+                        <span class="font-bold text-indigo-900">Male</span>
+                    </button>
+                    <button @click="setGender('female')" 
+                        class="p-6 rounded-2xl border-2 transition-all duration-200 flex flex-col items-center gap-3"
+                        :class="userProfile.gender === 'female' ? 'border-indigo-600 bg-indigo-50 shadow-lg' : 'border-slate-100 hover:border-indigo-200'">
+                        <span class="text-4xl">👩</span>
+                        <span class="font-bold text-indigo-900">Female</span>
+                    </button>
+                </div>
+            </div>
+
+            <div x-show="profileStep === 2" x-cloak x-transition:enter="transition ease-out duration-300 transform translate-x-4">
+                <h2 class="text-3xl font-bold text-indigo-900 mb-2">Fine tune.</h2>
+                <p class="text-slate-500 mb-8">Adjust the sliders to match your measurements.</p>
+
+                <form @submit.prevent="finishProfile" class="space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar pr-2">
+                    <div class="bg-slate-50 p-4 rounded-xl">
+                        <div class="flex justify-between mb-2">
+                            <label class="text-sm font-bold text-slate-700">Height</label>
+                            <span class="text-sm font-bold text-coral-500"><span x-text="userProfile.height"></span> cm</span>
+                        </div>
+                        <input type="range" x-model.number="userProfile.height" min="140" max="200">
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl">
+                        <div class="flex justify-between mb-2">
+                            <label class="text-sm font-bold text-slate-700">Weight</label>
+                            <span class="text-sm font-bold text-coral-500"><span x-text="userProfile.weight"></span> kg</span>
+                        </div>
+                        <input type="range" x-model.number="userProfile.weight" min="40" max="120">
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl">
+                        <div class="flex justify-between mb-2">
+                            <label class="text-sm font-bold text-slate-700">Chest</label>
+                            <span class="text-sm font-bold text-coral-500"><span x-text="userProfile.chest"></span> cm</span>
+                        </div>
+                        <input type="range" x-model.number="userProfile.chest" min="70" max="130">
+                    </div>
+                     <div class="bg-slate-50 p-4 rounded-xl">
+                        <div class="flex justify-between mb-2">
+                            <label class="text-sm font-bold text-slate-700">Waist</label>
+                            <span class="text-sm font-bold text-coral-500"><span x-text="userProfile.waist"></span> cm</span>
+                        </div>
+                        <input type="range" x-model.number="userProfile.waist" min="60" max="120">
+                    </div>
+                </form>
+
+                <button @click="finishProfile" class="w-full mt-6 py-4 bg-indigo-900 text-white rounded-xl font-bold shadow-lg shadow-indigo-900/20 hover:bg-indigo-800 transition transform active:scale-95 flex justify-center items-center gap-2">
+                    Generate Avatar
+                    <span x-show="loading" class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="currentPage === 'studio'" x-cloak class="fixed inset-0 z-30 bg-slate-100 overflow-hidden">
+        
+        <div id="3d-model-canvas" class="w-full h-full cursor-move"></div>
+        
+        <div x-show="loading" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+            <div class="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+            <p class="text-indigo-900 font-medium animate-pulse">Constructing Geometry...</p>
+        </div>
+
+        <div class="absolute top-24 left-6 z-40">
+            <div class="glass p-4 rounded-2xl shadow-sm backdrop-blur-md max-w-[200px]">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Analysis</h3>
+                <div class="mb-3">
+                    <p class="text-sm text-slate-500">Body Type</p>
+                    <p class="text-lg font-bold text-indigo-900 leading-none" x-text="getBodyTypeLabel()"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-500">Size Rec.</p>
+                    <p class="text-lg font-bold text-coral-500 leading-none">Medium (M)</p>
+                </div>
+                <button @click="goToPage('profile')" class="mt-4 text-xs font-bold text-indigo-600 hover:underline">Edit Measurements</button>
+            </div>
+        </div>
+
+        <div class="absolute top-0 right-0 h-full w-80 z-40 pt-24 pb-6 px-6 pointer-events-none flex flex-col justify-end md:justify-start">
+            <div class="glass rounded-3xl shadow-2xl p-5 pointer-events-auto h-auto max-h-[80vh] flex flex-col">
+                <h3 class="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                    <span class="text-xl">👕</span> Wardrobe
+                </h3>
+                
+                <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
+                    <button class="px-3 py-1 bg-indigo-900 text-white rounded-lg text-xs font-bold whitespace-nowrap">All</button>
+                    <button class="px-3 py-1 bg-indigo-50 text-indigo-900 rounded-lg text-xs font-bold whitespace-nowrap hover:bg-indigo-100">Tops</button>
+                    <button class="px-3 py-1 bg-indigo-50 text-indigo-900 rounded-lg text-xs font-bold whitespace-nowrap hover:bg-indigo-100">Bottoms</button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 overflow-y-auto no-scrollbar flex-1">
+                    <template x-for="(item, index) in clothingCatalog" :key="item.id">
+                        <button @click="selectClothing(index)" 
+                            class="aspect-square rounded-xl border-2 p-2 flex flex-col items-center justify-center gap-1 transition-all hover:scale-105 active:scale-95 bg-white"
+                            :class="currentClothingItem && currentClothingItem.id === item.id ? 'border-coral-400 shadow-md ring-2 ring-coral-100' : 'border-transparent hover:border-indigo-100'">
+                            <span class="text-3xl" x-text="item.emoji"></span>
+                            <span class="text-[10px] font-bold text-slate-700 text-center leading-tight" x-text="item.name"></span>
+                            <span class="text-[9px] text-indigo-600 font-mono" x-text="item.price"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="currentPage === 'feedback'" x-cloak class="fixed inset-0 z-50 bg-white flex items-center justify-center">
+        <div class="glass-dark p-8 md:p-12 rounded-[2rem] shadow-2xl max-w-lg w-full text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-coral-400"></div>
+            
+            <h2 class="text-3xl font-bold text-white mb-2">How was the fit?</h2>
+            <p class="text-indigo-200 mb-8">Help us train our AI to be even more accurate.</p>
+
+            <div class="flex justify-center gap-4 mb-8">
+                <template x-for="i in 5">
+                    <button @click="feedbackData.rating = i" class="text-4xl transition hover:scale-125 focus:outline-none transform" 
+                        :class="i <= feedbackData.rating ? 'opacity-100 grayscale-0' : 'opacity-30 grayscale'">
+                        ⭐
+                    </button>
+                </template>
+            </div>
+
+            <textarea x-model="feedbackData.comment" class="w-full bg-indigo-900/50 border border-indigo-700 rounded-xl p-4 text-white placeholder-indigo-300 mb-6 focus:ring-2 focus:ring-coral-400 outline-none" placeholder="Any specific fit issues?"></textarea>
+
+            <button @click="submitFeedback" class="w-full py-4 bg-coral-400 text-white font-bold rounded-xl shadow-lg shadow-coral-400/30 hover:bg-coral-500 transition">
+                Submit Review
+            </button>
+            <button @click="goToPage('studio')" class="mt-4 text-indigo-300 text-sm hover:text-white">Back to Studio</button>
+        </div>
+    </div>
+
+    <script src="js/models.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

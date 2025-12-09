@@ -6,6 +6,7 @@ function AinaApp() {
         currentPage: 'landing',
         profileStep: 1,
         hasScrolled: false, // New state for header styling
+        mobileMenuOpen: false,
         
         // Data Models
         userProfile: {

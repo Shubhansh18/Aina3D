@@ -85,12 +85,20 @@ function AinaApp() {
             }
         },
 
+        // NEW: Jumps directly to the measurement sliders (bypassing gender)
+        editProfile() {
+            this.profileStep = 2; // Force Step 2
+            this.currentPage = 'profile';
+            window.scrollTo(0, 0);
+        },
+
         // ===== NAVIGATION =====
         goToPage(page) {
             this.currentPage = page;
             window.scrollTo(0, 0);
             
-            // Reset profile step if leaving profile wizard
+            // Only reset to Step 1 if we are NOT going to profile
+            // This prevents "Edit" clicks from being reset if logic overlaps
             if (page !== 'profile') {
                 setTimeout(() => { this.profileStep = 1; }, 300);
             }

@@ -1,9 +1,9 @@
 // js/models.js - Three.js 3D Model Management
 
 let scene, camera, renderer, currentModel;
-let isSceneInitialized = false;
 let heroScene, heroCamera, heroRenderer;
 let particleSystem, skeletonLine;
+let isSceneInitialized = false;
 let mouseLight; // The light that follows the mouse
 let mouseX = 0, mouseY = 0;
 let targetX = 0, targetY = 0;
@@ -12,41 +12,29 @@ let targetX = 0, targetY = 0;
 
 function init3DScene() {
     const container = document.getElementById('3d-model-canvas');
-    
-    // Prevent double init or init on missing container
-    if (!container || isSceneInitialized) return;
-    
-    console.log('Initializing Immersive Studio...');
-    
-    // Scene setup
+    if (!container) return;
+    if (renderer) return;
+
     scene = new THREE.Scene();
-    // Transparent background to blend with CSS gradient
     scene.background = null; 
-    
-    // Camera setup
+
     const width = container.clientWidth;
     const height = container.clientHeight;
-    camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 1.2, 4.5); // Slightly lower and closer for intimacy
-    
-    // Renderer setup
+    camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+    camera.position.set(0, 0.8, 5.5);
+
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
-    
-    // Clear existing canvas if any (hot reload safety)
+    renderer.outputEncoding = THREE.sRGBEncoding;
+
     while(container.firstChild) container.removeChild(container.firstChild);
     container.appendChild(renderer.domElement);
-    
-    // Lighting
+
     setupStudioLighting();
-    
-    // Controls
     setupInteraction(container);
-    
-    // Resize Handler
+
     window.addEventListener('resize', () => {
         if (!container) return;
         const newWidth = container.clientWidth;
@@ -55,36 +43,23 @@ function init3DScene() {
         camera.updateProjectionMatrix();
         renderer.setSize(newWidth, newHeight);
     });
-    
-    // Animation Loop
+
     animate();
-    
-    isSceneInitialized = true;
 }
 
 // ===== STUDIO LIGHTING =====
 
 function setupStudioLighting() {
-    // 1. Ambient Light (Cool/Neutral base)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
-    
-    // 2. Key Light (Warm, from top-right) - "The Sun"
-    const keyLight = new THREE.DirectionalLight(0xffedd5, 0.9); // Slight Coral tint
-    keyLight.position.set(5, 10, 7);
+    const keyLight = new THREE.DirectionalLight(0xffedd5, 1.2); 
+    keyLight.position.set(2, 5, 5);
     keyLight.castShadow = true;
-    keyLight.shadow.mapSize.width = 2048;
-    keyLight.shadow.mapSize.height = 2048;
-    keyLight.shadow.bias = -0.0001;
     scene.add(keyLight);
-    
-    // 3. Rim Light (Cool, from back-left) - "The Edge"
-    const rimLight = new THREE.DirectionalLight(0x4f46e5, 0.6); // Indigo tint
+    const rimLight = new THREE.DirectionalLight(0x4f46e5, 0.8); 
     rimLight.position.set(-5, 5, -5);
     scene.add(rimLight);
-    
-    // 4. Fill Light (Soft, from front)
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
     fillLight.position.set(0, 0, 5);
     scene.add(fillLight);
 }
@@ -94,113 +69,105 @@ function setupStudioLighting() {
 function setupInteraction(container) {
     let isDragging = false;
     let previousMousePosition = { x: 0, y: 0 };
-    
     container.addEventListener('mousedown', (e) => {
         isDragging = true;
         previousMousePosition = { x: e.clientX, y: e.clientY };
     });
-    
-    document.addEventListener('mouseup', () => isDragging = false);
-    
-    document.addEventListener('mousemove', (e) => {
+    window.addEventListener('mouseup', () => isDragging = false);
+    container.addEventListener('mousemove', (e) => {
         if (!isDragging || !currentModel) return;
-        
-        const deltaMove = {
-            x: e.clientX - previousMousePosition.x,
-        };
-        
-        // Rotate model smoothly
-        currentModel.rotation.y += deltaMove.x * 0.05;
-        
+        const deltaMove = { x: e.clientX - previousMousePosition.x };
+        currentModel.rotation.y += deltaMove.x * 0.008;
         previousMousePosition = { x: e.clientX, y: e.clientY };
     });
-
-    // Mobile Touch Support
-    container.addEventListener('touchstart', (e) => {
-        isDragging = true;
-        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    }, {passive: false});
-
-    container.addEventListener('touchmove', (e) => {
-        if (!isDragging || !currentModel) return;
-        const deltaMove = { x: e.touches[0].clientX - previousMousePosition.x };
-        currentModel.rotation.y += deltaMove.x * 0.005;
-        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    }, {passive: false});
-    
-    container.addEventListener('touchend', () => isDragging = false);
 }
 
 // ===== MODEL LOADING =====
 
-function load3DModel(gender, bodyType, onComplete) {
+function load3DModel(modelName, onComplete) {
+    // 1. Check for Loaders
+    if (typeof THREE.GLTFLoader === 'undefined') {
+        console.error("ERROR: GLTFLoader missing.");
+        if (onComplete) onComplete();
+        return;
+    }
+
+    // 2. Cleanup Old Model
     if (currentModel) {
         scene.remove(currentModel);
+        currentModel.traverse((c) => { if(c.isMesh) { c.geometry.dispose(); c.material.dispose(); } });
         currentModel = null;
     }
     
-    // Fallback logic for demo purposes if specific model doesn't exist
-    const modelType = 'average'; 
-    const modelPath = `assets/models/${gender}_${modelType}.obj`;
-    const mtlPath = `assets/models/${gender}_${modelType}.mtl`;
-    
-    const mtlLoader = new THREE.MTLLoader();
-    mtlLoader.load(mtlPath, (materials) => {
-        materials.preload();
-        const objLoader = new THREE.OBJLoader();
-        objLoader.setMaterials(materials);
+    const safeName = modelName.toLowerCase().replace(/ /g, '_');
+    const modelUrl = `assets/models/${safeName}.glb`;
+    console.log(`Loading: ${modelUrl}`);
+
+    // 3. Initialize Loader
+    const loader = new THREE.GLTFLoader();
+
+    // === DRACO DECODER SETUP (FIXED VERSION) ===
+    if (typeof THREE.DRACOLoader !== 'undefined') {
+        const dracoLoader = new THREE.DRACOLoader();
         
-        objLoader.load(modelPath, (object) => {
-            // Material Optimizations for "Modern Look"
+        // POINT TO EXACTLY THE SAME VERSION AS THE JS LOADER (r128)
+        // This prevents "Draco Decoder version mismatch" errors
+        dracoLoader.setDecoderPath('https://unpkg.com/three@0.128.0/examples/js/libs/draco/');
+        
+        dracoLoader.setDecoderConfig({ type: 'js' });
+        loader.setDRACOLoader(dracoLoader);
+    }
+    
+    // 4. Load File
+    loader.load(
+        modelUrl,
+        (gltf) => {
+            const object = gltf.scene;
+            
             object.traverse((node) => {
                 if (node.isMesh) {
                     node.castShadow = true;
                     node.receiveShadow = true;
-                    // Slightly shinier skin for realism
-                    if(node.material) {
-                        node.material.shininess = 10; 
-                    }
+                    if(node.material) node.material.side = THREE.DoubleSide;
                 }
             });
-            
-            // Normalize Scale
+
+            // Auto-Centering & Scaling
             const box = new THREE.Box3().setFromObject(object);
             const size = box.getSize(new THREE.Vector3());
             const center = box.getCenter(new THREE.Vector3());
-            
-            // Fit to view height
+
             const maxDim = Math.max(size.y);
-            const scale = 2.5 / maxDim; 
-            object.scale.multiplyScalar(scale);
-            
-            // Center bottom at (0,0,0)
-            object.position.x = -center.x * scale;
-            object.position.y = -box.min.y * scale - 1.2; // Adjust floor height
-            object.position.z = -center.z * scale;
-            
+            const isMobile = camera.aspect < 1;
+            const targetHeight = isMobile ? 2.5 : 2.8; 
+            const scaleFactor = targetHeight / maxDim;
+
+            object.scale.setScalar(scaleFactor);
+            object.position.x = -center.x * scaleFactor;
+            object.position.z = -center.z * scaleFactor;
+            object.position.y = -box.min.y * scaleFactor - 1.4;
+
             currentModel = object;
             scene.add(currentModel);
-            
-            // Initial Animation Entrance
-            currentModel.rotation.y = Math.PI; // Face forward
-            
+            currentModel.rotation.y = 0; 
+
+            console.log("Model loaded successfully!");
             if (onComplete) onComplete();
-            
-        }, undefined, (err) => {
-            console.error('Error loading model:', err);
-            if (onComplete) onComplete(); // Finish loading anyway to show UI
-        });
-    }, undefined, (err) => {
-        console.error('Error loading materials:', err);
-        if (onComplete) onComplete();
-    });
+        },
+        undefined,
+        (error) => {
+            console.error("Load Error:", error);
+            // Alert user so they know it failed
+            alert(`Failed to load ${safeName}.glb.\nCheck console for version mismatch or 404.`);
+            if (onComplete) onComplete();
+        }
+    );
 }
 
 function resetModelView() {
     if (currentModel) {
-        // Smooth transition could be added here with TWEEN.js
-        currentModel.rotation.set(0, Math.PI, 0);
-        camera.position.set(0, 1.2, 4.5);
+        currentModel.rotation.set(0, 0, 0);
+        camera.position.set(0, 0.8, 5.5);
     }
 }
 

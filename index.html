@@ -76,10 +76,17 @@
     </style>
     
     <script src="https://kit.fontawesome.com/80710e270d.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/loaders/OBJLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/loaders/MTLLoader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+
+    <script defer src="js/models.js"></script>
+    <script defer src="js/app.js"></script>
 </head>
 
 <body 
@@ -124,11 +131,11 @@
                     </button>
                 </div>
 
-                <div class="hidden md:flex gap-4" x-show="currentPage === 'studio'">
-                     <button @click="resetView()" class="glass px-4 py-2 rounded-full text-sm font-medium text-indigo-900 hover:bg-white transition-all shadow-sm">
-                        Reset View
+                <div class="hidden md:flex gap-3" x-show="currentPage === 'studio'">
+                    <button @click="resetView()" class="px-4 py-2 rounded-full text-xs font-bold text-indigo-900 bg-indigo-50 hover:bg-indigo-100 transition">
+                        Reset Camera
                     </button>
-                     <button @click="goToPage('feedback')" class="bg-indigo-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-indigo-800 transition-all shadow-lg shadow-indigo-500/30">
+                    <button @click="goToPage('feedback')" class="bg-indigo-900 text-white px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wide hover:bg-coral-400 transition shadow-lg">
                         Finish & Feedback
                     </button>
                 </div>
@@ -848,7 +855,7 @@
                         </p>
                         
                         <div class="flex gap-4">
-                            <a href="#" target="_blank" class="w-8 h-8 rounded-full bg-indigo-900 flex items-center justify-center text-indigo-300 hover:bg-coral-400 hover:text-white transition-all">
+                            <a href="https://www.linkedin.com/company/aina3d/" target="_blank" class="w-8 h-8 rounded-full bg-indigo-900 flex items-center justify-center text-indigo-300 hover:bg-coral-400 hover:text-white transition-all">
                                 <i class="fa-brands fa-linkedin-in"></i>
                             </a>
                             <a href="https://www.instagram.com/aina_3d" target="_blank" class="w-8 h-8 rounded-full bg-indigo-900 flex items-center justify-center text-indigo-300 hover:bg-coral-400 hover:text-white transition-all">
@@ -1008,7 +1015,7 @@
                         </div>
 
                         <h3 class="text-2xl font-bold text-indigo-950">Arihant Jain</h3>
-                        <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & CEO • Business & GTM</p>
+                        <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & CEO • Business Growth & GTM</p>
                         
                         <p class="text-slate-600 mb-8 leading-relaxed text-sm">
                             Arihant runs on instinct, obsession and a slightly alarming level o f excitement for anything that moves a metric. He’s the team’s north star, spotting what to build, what to kill and what to scale before the rest of us even get coffee. And beneath all that chaos-energy is a very real engine: he turns India’s sizing drama into a grounded growth strategy, sharper funnels and actual revenue gained for every Aina3D partner brand.
@@ -1033,7 +1040,7 @@
                         </div>
 
                         <h3 class="text-2xl font-bold text-indigo-950">Amrita Singh</h3>
-                        <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & CMO • Fashion & Brand</p>
+                        <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & CMO • Fashion & Brand Partnership</p>
                         
                         <p class="text-slate-600 mb-8 leading-relaxed text-sm">
                             Amrita is our in-house fashion brain and brand therapist. She doesn’t just understand silhouettes and fits- she understands why Indian shoppers pick, return, repeat-buy and ghost brands. She turns those customer patterns into strategy for every partner brand, helping them design smarter and sell faster. And because she reads the market the way most people read Instagram captions, she keeps Aina3D ahead of the curve.
@@ -1058,7 +1065,7 @@
                         </div>
 
                         <h3 class="text-2xl font-bold text-indigo-950">Aditya Shankar</h3>
-                        <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & C3DO • Avatar Systems</p>
+                        <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & C3DO • 3D & Avatar System Designer</p>
                         
                         <p class="text-slate-600 mb-8 leading-relaxed text-sm">
                             Adi is the 3D nerd for whom this entire universe is a playground. He’s spent years mastering digital humans, garment simulation and pixel-perfect detailing- the kind of details that separate a render from reality. Thanks to him, Aina3D avatars don’t just look good, they move, drape and crease like real clothes on real bodies, so shoppers can skip the fitting room and still get the fit right.
@@ -1083,7 +1090,7 @@
                         </div>
 
                         <h3 class="text-2xl font-bold text-indigo-950">Shubhansh Gupta</h3>
-                        <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & CTO • Tech & Product</p>
+                        <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & CTO • Tech & Product Engineer</p>
                         
                         <p class="text-slate-600 mb-8 leading-relaxed text-sm">
                             Shubhansh is quite a deadly engineer behind the scenes. He’s built and shipped across stacks, but his real superpower is knowing exactly how to weaponize AI and time, because for him, both are money. If there’s a bottleneck, he’ll find it; if there’s a solution, he’s already built it. And thanks to that terrifying efficiency, Aina3D slips into a brand’s site without touching speed, security, or UX. Marketers see uplift, devs stay calm, and customers trust it instantly.
@@ -1115,130 +1122,218 @@
         </div>
     </section>
 
-    <div x-show="currentPage === 'profile'" x-cloak x-transition:enter="transition ease-out duration-300" class="fixed inset-0 z-40 bg-white flex items-center justify-center p-4">
-        <div class="w-full max-w-md">
-            <div class="flex justify-between items-center mb-8">
-                <button @click="goToPage('landing')" class="text-slate-400 hover:text-indigo-900 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                </button>
-                <div class="flex gap-2">
-                    <div class="h-1 w-8 rounded-full bg-indigo-900"></div>
-                    <div class="h-1 w-8 rounded-full" :class="profileStep > 1 ? 'bg-indigo-900' : 'bg-slate-200'"></div>
-                </div>
+    <div x-show="currentPage === 'profile'" x-cloak x-transition:enter="transition ease-out duration-300" class="fixed inset-0 z-50 bg-white flex flex-col">
+        
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white z-10 shadow-sm">
+            <button @click="goBackProfile()" class="p-2 -ml-2 text-slate-400 hover:text-indigo-900 transition rounded-full hover:bg-slate-50">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+
+            <div class="flex gap-1.5">
+                <div class="h-1.5 w-8 rounded-full transition-colors duration-300" :class="profileStep >= 1 ? 'bg-indigo-900' : 'bg-slate-200'"></div>
+                <div class="h-1.5 w-8 rounded-full transition-colors duration-300" :class="profileStep >= 2 ? 'bg-indigo-900' : 'bg-slate-200'"></div>
             </div>
 
-            <div x-show="profileStep === 1" x-transition:enter="transition ease-out duration-300 transform translate-x-4">
-                <h2 class="text-3xl font-bold text-indigo-900 mb-2">First things first.</h2>
-                <p class="text-slate-500 mb-8">Select your body frame to initialize the model.</p>
+            <button @click="goToPage('landing')" class="p-2 -mr-2 text-slate-300 hover:text-coral-500 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar w-full max-w-lg mx-auto bg-slate-50/50">
+            
+            <div x-show="profileStep === 1" x-transition:enter="transition ease-out duration-300 transform translate-x-4" class="p-6 pt-10 h-full flex flex-col justify-center">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-indigo-900 mb-2">Let's get started</h2>
+                    <p class="text-slate-500">Choose your body frame to begin.</p>
+                </div>
                 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-6">
                     <button @click="setGender('male')" 
-                        class="p-6 rounded-2xl border-2 transition-all duration-200 flex flex-col items-center gap-3"
-                        :class="userProfile.gender === 'male' ? 'border-indigo-600 bg-indigo-50 shadow-lg' : 'border-slate-100 hover:border-indigo-200'">
-                        <span class="text-4xl">👨</span>
-                        <span class="font-bold text-indigo-900">Male</span>
+                        class="aspect-[4/5] rounded-[2rem] bg-white border-2 transition-all duration-300 flex flex-col items-center justify-center gap-4 group shadow-sm hover:shadow-xl"
+                        :class="userProfile.gender === 'male' ? 'border-indigo-600 ring-4 ring-indigo-50' : 'border-transparent hover:border-indigo-200'">
+                        <span class="text-6xl filter grayscale group-hover:grayscale-0 transition duration-300 transform group-hover:scale-110">👨</span>
+                        <span class="font-bold text-lg text-slate-700 group-hover:text-indigo-900">Male</span>
                     </button>
                     <button @click="setGender('female')" 
-                        class="p-6 rounded-2xl border-2 transition-all duration-200 flex flex-col items-center gap-3"
-                        :class="userProfile.gender === 'female' ? 'border-indigo-600 bg-indigo-50 shadow-lg' : 'border-slate-100 hover:border-indigo-200'">
-                        <span class="text-4xl">👩</span>
-                        <span class="font-bold text-indigo-900">Female</span>
+                        class="aspect-[4/5] rounded-[2rem] bg-white border-2 transition-all duration-300 flex flex-col items-center justify-center gap-4 group shadow-sm hover:shadow-xl"
+                        :class="userProfile.gender === 'female' ? 'border-indigo-600 ring-4 ring-indigo-50' : 'border-transparent hover:border-indigo-200'">
+                        <span class="text-6xl filter grayscale group-hover:grayscale-0 transition duration-300 transform group-hover:scale-110">👩</span>
+                        <span class="font-bold text-lg text-slate-700 group-hover:text-indigo-900">Female</span>
                     </button>
                 </div>
             </div>
 
-            <div x-show="profileStep === 2" x-cloak x-transition:enter="transition ease-out duration-300 transform translate-x-4">
-                <h2 class="text-3xl font-bold text-indigo-900 mb-2">Fine tune.</h2>
-                <p class="text-slate-500 mb-8">Adjust the sliders to match your measurements.</p>
-
-                <form @submit.prevent="finishProfile" class="space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar pr-2">
-                    <div class="bg-slate-50 p-4 rounded-xl">
-                        <div class="flex justify-between mb-2">
-                            <label class="text-sm font-bold text-slate-700">Height</label>
-                            <span class="text-sm font-bold text-coral-500"><span x-text="userProfile.height"></span> cm</span>
+            <div x-show="profileStep === 2" x-cloak x-transition:enter="transition ease-out duration-300 transform translate-x-4" class="pb-32">
+                
+                <div class="bg-white px-6 pt-6 pb-4 sticky top-0 z-10 border-b border-slate-100/50 backdrop-blur-md bg-white/90">
+                    <div class="flex justify-between items-center mb-1">
+                        <h2 class="text-2xl font-bold text-indigo-900">Your Measurements</h2>
+                        <div class="flex bg-slate-100 p-1 rounded-lg">
+                            <button @click="toggleUnits('metric')" class="px-3 py-1 rounded-md text-[10px] font-bold transition-all" :class="unitSystem === 'metric' ? 'bg-white text-indigo-900 shadow-sm' : 'text-slate-400'">CM</button>
+                            <button @click="toggleUnits('imperial')" class="px-3 py-1 rounded-md text-[10px] font-bold transition-all" :class="unitSystem === 'imperial' ? 'bg-white text-indigo-900 shadow-sm' : 'text-slate-400'">IN</button>
                         </div>
-                        <input type="range" x-model.number="userProfile.height" min="140" max="200">
+                    </div>
+                </div>
+
+                <div class="p-6 space-y-8">
+                    
+                    <div>
+                        <div class="flex justify-between items-end mb-4">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1">Body Shape</label>
+                            <span class="text-[10px] text-indigo-400 font-medium bg-indigo-50 px-2 py-1 rounded-md">Select closest match</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-3">
+                            <template x-for="shape in bodyShapes" :key="shape.id">
+                                <button @click="userProfile.bodyShape = shape.id"
+                                    class="relative flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all duration-200 group bg-white"
+                                    :class="userProfile.bodyShape ===   shape.id ? 'border-coral-400 shadow-md ring-1 ring-coral-100' : 'border-slate-100 hover:border-indigo-200 hover:shadow-sm'">
+                                    
+                                    <div class="w-full aspect-[3/4] bg-slate-50 rounded-lg overflow-hidden relative flex items-center justify-center">
+                                        
+                                        <img :src="`assets/shapes/${userProfile.gender || 'male'}_${shape.id}.png`" 
+                                             :alt="shape.label"
+                                             class="w-full h-full object-contain p-1 transition-transform duration-300"
+                                             :class="userProfile.bodyShape === shape.id ? 'scale-105' : 'group-hover:scale-105'"
+                                             onerror="this.style.display='none'">
+                                        
+                                        <span class="text-3xl absolute" x-show="$el.previousElementSibling.style.display === 'none'" x-text="shape.emoji"></span>
+
+                                        <div x-show="userProfile.bodyShape === shape.id" 
+                                             x-transition.opacity
+                                             class="absolute inset-0 bg-coral-500/10 z-10"></div>
+                                    </div>
+                                    
+                                    <span class="text-[10px] font-bold text-center leading-tight transition-colors"
+                                          :class="userProfile.bodyShape === shape.id ? 'text-indigo-900' : 'text-slate-500 group-hover:text-indigo-900'" 
+                                          x-text="shape.label"></span>
+
+                                    <div x-show="userProfile.bodyShape === shape.id" 
+                                         class="absolute -top-2 -right-2 w-5 h-5 bg-coral-500 text-white rounded-full flex items-center justify-center border-2 border-white shadow-sm z-20">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </button>
+                            </template>
+                        </div>
                     </div>
 
-                    <div class="bg-slate-50 p-4 rounded-xl">
-                        <div class="flex justify-between mb-2">
-                            <label class="text-sm font-bold text-slate-700">Weight</label>
-                            <span class="text-sm font-bold text-coral-500"><span x-text="userProfile.weight"></span> kg</span>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                            <label class="text-xs font-bold text-slate-400 uppercase block mb-1">Height</label>
+                            <div class="flex items-baseline gap-1 mb-2">
+                                <span class="text-2xl font-bold text-indigo-900" x-text="userProfile.height"></span>
+                                <span class="text-xs font-bold text-coral-500" x-text="unitSystem === 'metric' ? 'cm' : 'in'"></span>
+                            </div>
+                            <input type="range" class="w-full accent-coral-500 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer" 
+                                x-model.number="userProfile.height" :min="unitSystem === 'metric' ? 140 : 55" :max="unitSystem === 'metric' ? 210 : 83">
                         </div>
-                        <input type="range" x-model.number="userProfile.weight" min="40" max="120">
+
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                            <label class="text-xs font-bold text-slate-400 uppercase block mb-1">Weight</label>
+                            <div class="flex items-baseline gap-1 mb-2">
+                                <span class="text-2xl font-bold text-indigo-900" x-text="userProfile.weight"></span>
+                                <span class="text-xs font-bold text-coral-500">kg</span>
+                            </div>
+                            <input type="range" class="w-full accent-coral-500 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer" 
+                                x-model.number="userProfile.weight" min="40" max="150">
+                        </div>
                     </div>
 
-                    <div class="bg-slate-50 p-4 rounded-xl">
-                        <div class="flex justify-between mb-2">
-                            <label class="text-sm font-bold text-slate-700">Chest</label>
-                            <span class="text-sm font-bold text-coral-500"><span x-text="userProfile.chest"></span> cm</span>
-                        </div>
-                        <input type="range" x-model.number="userProfile.chest" min="70" max="130">
-                    </div>
-                     <div class="bg-slate-50 p-4 rounded-xl">
-                        <div class="flex justify-between mb-2">
-                            <label class="text-sm font-bold text-slate-700">Waist</label>
-                            <span class="text-sm font-bold text-coral-500"><span x-text="userProfile.waist"></span> cm</span>
-                        </div>
-                        <input type="range" x-model.number="userProfile.waist" min="60" max="120">
-                    </div>
-                </form>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 block pl-1">Details</label>
+                        <div class="bg-white rounded-[1.5rem] p-5 border border-slate-100 shadow-sm space-y-6">
+                            
+                            <template x-for="part in ['shoulder', 'chest', 'belly', 'waist', 'hips']">
+                                <div>
+                                    <div class="flex justify-between mb-2">
+                                        <label class="text-sm font-semibold text-slate-700 capitalize" x-text="part"></label>
+                                        <span class="text-sm font-bold text-indigo-900">
+                                            <span x-text="userProfile[part]"></span> <span class="text-xs text-slate-400" x-text="unitSystem === 'metric' ? 'cm' : 'in'"></span>
+                                        </span>
+                                    </div>
+                                    <input type="range" class="w-full accent-indigo-600 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer hover:bg-slate-200 transition-colors"
+                                        x-model.number="userProfile[part]" 
+                                        :min="unitSystem === 'metric' ? 30 : 12" 
+                                        :max="unitSystem === 'metric' ? 150 : 60">
+                                </div>
+                            </template>
 
-                <button @click="finishProfile" class="w-full mt-6 py-4 bg-indigo-900 text-white rounded-xl font-bold shadow-lg shadow-indigo-900/20 hover:bg-indigo-800 transition transform active:scale-95 flex justify-center items-center gap-2">
-                    Generate Avatar
-                    <span x-show="loading" class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <div x-show="profileStep === 2" class="p-6 border-t border-slate-100 bg-white z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+             <button @click="finishProfile" class="w-full py-4 bg-indigo-900 text-white rounded-2xl font-bold shadow-xl shadow-indigo-900/20 hover:bg-indigo-800 transition transform active:scale-[0.98] flex justify-center items-center gap-3">
+                <span>Generate Avatar</span>
+                <span x-show="!loading">→</span>
+                <span x-show="loading" class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+            </button>
+        </div>
+
     </div>
 
-    <div x-show="currentPage === 'studio'" x-cloak class="fixed inset-0 z-30 bg-slate-100 overflow-hidden">
+    <div x-show="currentPage === 'studio'" x-cloak class="fixed inset-0 z-30 bg-white flex flex-col md:flex-row pt-16">
         
-        <div id="3d-model-canvas" class="w-full h-full cursor-move"></div>
-        
-        <div x-show="loading" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
-            <div class="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
-            <p class="text-indigo-900 font-medium animate-pulse">Constructing Geometry...</p>
-        </div>
+        <div class="relative w-full h-[55%] md:h-full md:flex-1 order-1 overflow-hidden bg-slate-50">
+            
+            <img src="assets/wardrobe.jpg" alt="Virtual Wardrobe" class="absolute inset-0 w-full h-full object-cover opacity-100">
+            
+            <div class="absolute inset-0 bg-gradient-to-t from-indigo-900/10 via-transparent to-white/20"></div>
 
-        <div class="absolute top-24 left-6 z-40">
-            <div class="glass p-4 rounded-2xl shadow-sm backdrop-blur-md max-w-[200px]">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Analysis</h3>
-                <div class="mb-3">
-                    <p class="text-sm text-slate-500">Body Type</p>
-                    <p class="text-lg font-bold text-indigo-900 leading-none" x-text="getBodyTypeLabel()"></p>
+            <div id="3d-model-canvas" class="relative z-10 w-full h-full cursor-move outline-none active:cursor-grabbing"></div>
+            
+            <div x-show="loading" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity">
+                <div class="w-10 h-10 border-4 border-indigo-100 border-t-coral-500 rounded-full animate-spin mb-3"></div>
+                <p class="text-indigo-900 font-bold text-xs uppercase tracking-widest animate-pulse">Loading Model...</p>
+            </div>
+
+            <div class="absolute top-4 left-4 z-40">
+                <div class="bg-white/90 backdrop-blur-md px-3 py-2 rounded-xl shadow-sm border border-white flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-900 flex items-center justify-center text-lg">📐</div>
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Detected</p>
+                        <p class="text-xs font-bold text-indigo-900 leading-tight" x-text="getBodyTypeLabel()"></p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-sm text-slate-500">Size Rec.</p>
-                    <p class="text-lg font-bold text-coral-500 leading-none">Medium (M)</p>
-                </div>
-                <button @click="goToPage('profile')" class="mt-4 text-xs font-bold text-indigo-600 hover:underline">Edit Measurements</button>
             </div>
         </div>
 
-        <div class="absolute top-0 right-0 h-full w-80 z-40 pt-24 pb-6 px-6 pointer-events-none flex flex-col justify-end md:justify-start">
-            <div class="glass rounded-3xl shadow-2xl p-5 pointer-events-auto h-auto max-h-[80vh] flex flex-col">
-                <h3 class="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
+        <div class="w-full h-[45%] md:h-full md:w-[380px] bg-white border-t md:border-t-0 md:border-l border-slate-200 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-40 flex flex-col order-2 relative">
+            
+            <div class="md:hidden w-full flex justify-center pt-2 pb-1">
+                <div class="w-10 h-1 rounded-full bg-slate-200"></div>
+            </div>
+
+            <div class="px-5 py-3 md:py-5 border-b border-slate-100 flex justify-between items-center bg-white">
+                <h3 class="text-base md:text-lg font-bold text-indigo-900 flex items-center gap-2">
                     <span class="text-xl">👕</span> Wardrobe
                 </h3>
-                
-                <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
-                    <button class="px-3 py-1 bg-indigo-900 text-white rounded-lg text-xs font-bold whitespace-nowrap">All</button>
-                    <button class="px-3 py-1 bg-indigo-50 text-indigo-900 rounded-lg text-xs font-bold whitespace-nowrap hover:bg-indigo-100">Tops</button>
-                    <button class="px-3 py-1 bg-indigo-50 text-indigo-900 rounded-lg text-xs font-bold whitespace-nowrap hover:bg-indigo-100">Bottoms</button>
-                </div>
+                <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md font-bold uppercase">New Arrivals</span>
+            </div>
 
-                <div class="grid grid-cols-2 gap-3 overflow-y-auto no-scrollbar flex-1">
-                    <template x-for="(item, index) in clothingCatalog" :key="item.id">
-                        <button @click="selectClothing(index)" 
-                            class="aspect-square rounded-xl border-2 p-2 flex flex-col items-center justify-center gap-1 transition-all hover:scale-105 active:scale-95 bg-white"
-                            :class="currentClothingItem && currentClothingItem.id === item.id ? 'border-coral-400 shadow-md ring-2 ring-coral-100' : 'border-transparent hover:border-indigo-100'">
-                            <span class="text-3xl" x-text="item.emoji"></span>
-                            <span class="text-[10px] font-bold text-slate-700 text-center leading-tight" x-text="item.name"></span>
-                            <span class="text-[9px] text-indigo-600 font-mono" x-text="item.price"></span>
-                        </button>
-                    </template>
-                </div>
+            <div class="flex-1 overflow-y-auto p-4 md:p-5 grid grid-cols-2 gap-3 content-start bg-slate-50/30">
+                <template x-for="(item, index) in clothingCatalog" :key="item.id">
+                    <button @click="selectClothing(index)" 
+                        class="relative aspect-[4/5] bg-white rounded-xl border p-2 flex flex-col items-center justify-between transition-all duration-200 group"
+                        :class="currentClothingItem && currentClothingItem.id === item.id ? 'border-coral-400 ring-1 ring-coral-100 shadow-md' : 'border-slate-100 hover:border-indigo-200 hover:shadow-sm'">
+                        
+                        <div class="flex-1 w-full flex items-center justify-center text-4xl group-hover:scale-110 transition-transform" x-text="item.emoji"></div>
+                        
+                        <div class="w-full text-center">
+                            <p class="text-[9px] uppercase font-bold text-slate-400 tracking-wider" x-text="item.brand"></p>
+                            <p class="text-[11px] font-bold text-slate-800 truncate" x-text="item.name"></p>
+                            <p class="text-[10px] font-bold text-indigo-600 mt-0.5" x-text="item.price"></p>
+                        </div>
+                    </button>
+                </template>
+            </div>
+
+            <div class="p-4 bg-white border-t border-slate-100 md:hidden pb-safe">
+                <button @click="goToPage('feedback')" class="w-full py-3 bg-indigo-900 text-white rounded-xl font-bold text-sm shadow-lg active:scale-[0.98] transition">
+                    Finish Fitting
+                </button>
             </div>
         </div>
     </div>

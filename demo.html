@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aina — Try Demo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          indigo: {
+            50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',
+            300:'#a5b4fc',400:'#818cf8',500:'#6366f1',
+            600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81',950:'#1e1b4b'
+          },
+          coral: { 400:'#F87171', 500:'#EF4444', 50:'#fff1f2' }
+        },
+        fontFamily: { sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'] }
+      }
+    }
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  [x-cloak] { display: none !important; }
+
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type=number] { -moz-appearance: textfield; }
+
+  .step-enter { animation: stepIn 0.32s cubic-bezier(0.22,1,0.36,1) both; }
+  @keyframes stepIn {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 0.9s linear infinite; }
+
+  @keyframes pulse-dot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.8); } }
+  .pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+
+  .upload-zone { transition: border-color 0.18s, background 0.18s; }
+  .upload-zone:hover { border-color: #818cf8; background: #eef2ff; }
+  .upload-zone.has-file { border-color: #6366f1; background: #eef2ff; }
+
+  .progress-fill { transition: width 0.45s cubic-bezier(0.4,0,0.2,1); }
+
+  .mcard { transition: border-color 0.18s, background 0.18s, transform 0.18s; }
+  .mcard:hover { transform: translateY(-2px); }
+  .mcard.edited { border-color: #F87171 !important; background: #fff1f2 !important; }
+
+  input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+  input[type=range]::-webkit-slider-runnable-track { height: 4px; background: #e0e7ff; border-radius: 2px; cursor: pointer; }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+    background: #312e81; cursor: pointer; margin-top: -9px;
+    box-shadow: 0 2px 8px rgba(49,46,129,0.35);
+  }
+</style>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+</head>
+
+<body class="bg-indigo-50 min-h-screen font-sans" x-data="aina()" x-init="init()">
+
+  <!-- ═══ NAV ═══ -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100">
+    <div class="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2">
+        <img src="assets/aina.png" alt="Aina" class="h-8 w-auto object-contain"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      </a>
+      <!-- DEV: ngrok URL configurator — remove once backend is live -->
+      <div class="relative" x-data="{ open: false }">
+        <button @click="open = !open"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-indigo-300 transition text-xs font-bold text-slate-400 hover:text-indigo-900"
+          :class="apiBase ? 'border-green-300 text-green-600' : ''">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          API
+        </button>
+
+        <!-- Dropdown -->
+        <div x-show="open" x-cloak @click.away="open = false"
+          x-transition:enter="transition ease-out duration-150"
+          x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+          x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+          class="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 z-50">
+
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Backend URL</p>
+          <p class="text-[10px] text-slate-300 mb-3">Paste your ngrok URL below. Removed once backend is live.</p>
+
+          <div class="flex gap-2">
+            <input type="url"
+              :value="apiBase"
+              @change="apiBase = $event.target.value.replace(/\/$/, '')"
+              placeholder="https://xxxx.ngrok-free.app"
+              class="flex-1 border-2 border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-700 focus:outline-none focus:border-indigo-400 transition min-w-0" />
+            <button @click="open = false"
+              class="px-3 py-2 bg-indigo-900 text-white rounded-xl text-xs font-bold hover:bg-indigo-800 transition flex-shrink-0">
+              Save
+            </button>
+          </div>
+
+          <!-- Status indicator -->
+          <div class="mt-3 flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full flex-shrink-0"
+              :class="apiBase && apiBase.startsWith('https://') ? 'bg-green-400' : 'bg-red-400'"></div>
+            <p class="text-[10px] font-mono text-slate-400 truncate" x-text="apiBase || 'No URL set'"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-lg mx-auto px-4 pt-20 pb-20">
+
+    <!-- ── Progress ── -->
+    <div class="mb-6 pt-4">
+      <div class="flex justify-between mb-2">
+        <template x-for="(label, i) in stepLabels" :key="i">
+          <span class="text-[9px] font-bold uppercase tracking-widest transition-colors duration-200"
+            :class="step === i+1 ? 'text-indigo-900' : step > i+1 ? 'text-indigo-400' : 'text-slate-300'"
+            x-text="label"></span>
+        </template>
+      </div>
+      <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-indigo-600 to-coral-400 rounded-full progress-fill"
+          :style="`width: ${progressPct}%`"></div>
+      </div>
+      <p class="text-right text-[10px] text-slate-400 font-medium mt-1.5" x-text="`Step ${step} of ${totalSteps}`"></p>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         STEP 1 — GENDER
+    ══════════════════════════════════════════════════════════ -->
+    <div x-show="step === 1" x-cloak class="step-enter">
+      <div class="mb-5">
+        <h1 class="text-2xl font-black text-indigo-950 mb-1 tracking-tight">Let's get started</h1>
+        <p class="text-slate-500 text-sm font-light">We use this to calibrate your body measurements accurately.</p>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-4">
+        <p class="text-[10px] font-black text-indigo-300 tracking-widest uppercase mb-4">Select your gender</p>
+        <div class="grid grid-cols-2 gap-3">
+          <button @click="form.gender = 'male'"
+            class="py-8 rounded-2xl border-2 font-bold text-sm transition-all duration-150 flex flex-col items-center gap-3"
+            :class="form.gender === 'male'
+              ? 'border-indigo-900 bg-indigo-900 text-white shadow-lg shadow-indigo-900/20'
+              : 'border-slate-200 text-slate-500 hover:border-indigo-300 bg-white'">
+            <span class="text-4xl">🧍‍♂️</span>
+            Male
+          </button>
+          <button @click="form.gender = 'female'"
+            class="py-8 rounded-2xl border-2 font-bold text-sm transition-all duration-150 flex flex-col items-center gap-3"
+            :class="form.gender === 'female'
+              ? 'border-coral-500 bg-coral-500 text-white shadow-lg shadow-coral-500/20'
+              : 'border-slate-200 text-slate-500 hover:border-coral-300 bg-white'">
+            <span class="text-4xl">🧍‍♀️</span>
+            Female
+          </button>
+        </div>
+      </div>
+
+      <div x-show="stepError" x-transition class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 text-sm text-red-600 flex items-center gap-2">
+        <span>⚠️</span><span x-text="stepError"></span>
+      </div>
+
+      <button @click="nextStep()"
+        class="w-full py-4 rounded-2xl font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2"
+        :class="form.gender
+          ? 'bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800'
+          : 'bg-slate-100 text-slate-400 cursor-not-allowed'">
+        Continue
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         STEP 2 — HEIGHT & WEIGHT
+    ══════════════════════════════════════════════════════════ -->
+    <div x-show="step === 2" x-cloak class="step-enter">
+      <div class="mb-5">
+        <h1 class="text-2xl font-black text-indigo-950 mb-1 tracking-tight">Your body stats</h1>
+        <p class="text-slate-500 text-sm font-light">Helps our AI establish your baseline body profile.</p>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-4 space-y-5">
+
+        <!-- Height slider -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Height</label>
+            <div class="flex items-baseline gap-1">
+              <span class="text-2xl font-black text-indigo-950" x-text="form.height_cm || '—'"></span>
+              <span class="text-xs text-slate-400 font-medium">cm</span>
+            </div>
+          </div>
+          <input type="range" min="140" max="220" step="1" x-model.number="form.height_cm" />
+          <div class="flex justify-between text-[10px] text-slate-300 font-medium mt-1">
+            <span>140 cm</span><span>220 cm</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Height (cm)</label>
+            <input type="number" x-model.number="form.height_cm" placeholder="e.g. 170" min="100" max="250"
+              class="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-slate-800 font-semibold focus:outline-none focus:border-indigo-400 transition text-base" />
+          </div>
+          <div>
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Weight (kg)</label>
+            <input type="number" x-model.number="form.weight_kg" placeholder="e.g. 70" min="30" max="300"
+              class="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-slate-800 font-semibold focus:outline-none focus:border-indigo-400 transition text-base" />
+          </div>
+        </div>
+
+        <!-- BMI live card -->
+        <div x-show="form.height_cm > 100 && form.weight_kg > 0" x-transition
+          class="rounded-2xl px-5 py-4 flex items-center justify-between" :style="bmiStyle">
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-widest opacity-60">Your BMI</p>
+            <p class="text-3xl font-black leading-none mt-0.5" x-text="bmi"></p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-bold" x-text="bmiLabel"></p>
+            <p class="text-[10px] opacity-60 mt-0.5">Body Mass Index</p>
+          </div>
+        </div>
+      </div>
+
+      <div x-show="stepError" x-transition class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 text-sm text-red-600 flex items-center gap-2">
+        <span>⚠️</span><span x-text="stepError"></span>
+      </div>
+
+      <div class="flex gap-3">
+        <button @click="prevStep()" class="px-6 py-4 rounded-2xl font-bold text-sm text-slate-500 bg-white border-2 border-slate-200 hover:border-slate-300 transition">←</button>
+        <button @click="nextStep()" class="flex-1 py-4 rounded-2xl font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2"
+          :class="form.height_cm > 100 && form.weight_kg > 30
+            ? 'bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800'
+            : 'bg-slate-100 text-slate-400 cursor-not-allowed'">
+          Continue
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         STEP 3 — FACE PHOTO
+    ══════════════════════════════════════════════════════════ -->
+    <div x-show="step === 3" x-cloak class="step-enter">
+      <div class="mb-5">
+        <h1 class="text-2xl font-black text-indigo-950 mb-1 tracking-tight">Your face photo</h1>
+        <p class="text-slate-500 text-sm font-light">Used to generate your personalised AI avatar. Stays on your device.</p>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-3">
+        <label class="upload-zone block border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer mb-5"
+          :class="form.facePhoto ? 'has-file' : ''"
+          @dragover.prevent @drop.prevent="handleFaceDrop($event)">
+          <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="handleFaceFile($event)" />
+
+          <template x-if="facePreview">
+            <div class="flex flex-col items-center gap-3">
+              <img :src="facePreview" class="w-32 h-32 object-cover rounded-full border-4 border-indigo-200 shadow-md mx-auto" />
+              <p class="text-xs text-indigo-600 font-semibold">Tap to change photo</p>
+            </div>
+          </template>
+          <template x-if="!facePreview">
+            <div class="py-3">
+              <div class="text-4xl mb-3">🤳</div>
+              <p class="font-bold text-slate-700 mb-1">Upload a selfie</p>
+              <p class="text-xs text-slate-400">JPG or PNG · Max 10MB</p>
+            </div>
+          </template>
+        </label>
+
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Photo tips</p>
+        <div class="grid grid-cols-2 gap-2">
+          <template x-for="tip in faceTips">
+            <div class="rounded-xl bg-slate-50 p-2.5 flex items-start gap-2 text-xs text-slate-500">
+              <span x-text="tip.icon" class="flex-shrink-0 mt-0.5"></span>
+              <span x-text="tip.text"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <p class="text-center text-xs text-slate-400 mb-4">Face photo is optional — you can skip and add it later.</p>
+
+      <div class="flex gap-3">
+        <button @click="prevStep()" class="px-6 py-4 rounded-2xl font-bold text-sm text-slate-500 bg-white border-2 border-slate-200 hover:border-slate-300 transition">←</button>
+        <button @click="nextStep()" class="flex-1 py-4 rounded-2xl font-bold text-sm bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800 transition flex items-center justify-center gap-2">
+          <span x-text="form.facePhoto ? 'Continue' : 'Skip for now'"></span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         STEP 4 — BODY PHOTO
+    ══════════════════════════════════════════════════════════ -->
+    <div x-show="step === 4" x-cloak class="step-enter">
+      <div class="mb-5">
+        <h1 class="text-2xl font-black text-indigo-950 mb-1 tracking-tight">Full body photo</h1>
+        <p class="text-slate-500 text-sm font-light">Our AI reads your body shape to extract accurate measurements.</p>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-4">
+        <label class="upload-zone block border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer mb-5"
+          :class="form.photo ? 'has-file' : ''"
+          @dragover.prevent @drop.prevent="handleBodyDrop($event)">
+          <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="handleBodyFile($event)" />
+
+          <template x-if="photoPreview">
+            <div>
+              <img :src="photoPreview" class="w-full max-h-64 object-cover rounded-xl mx-auto mb-2" />
+              <p class="text-xs text-indigo-600 font-semibold">Tap to change photo</p>
+            </div>
+          </template>
+          <template x-if="!photoPreview">
+            <div class="py-3">
+              <div class="text-4xl mb-3">📸</div>
+              <p class="font-bold text-slate-700 mb-1">Upload full body photo</p>
+              <p class="text-xs text-slate-400">JPG or PNG · Max 10MB</p>
+            </div>
+          </template>
+        </label>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-[10px] font-black text-green-600 uppercase tracking-widest mb-2">✓ Do this</p>
+            <div class="space-y-2">
+              <template x-for="tip in bodyDos">
+                <div class="rounded-xl bg-green-50 p-2.5 flex items-start gap-2 text-xs text-green-700">
+                  <span x-text="tip.icon" class="flex-shrink-0"></span>
+                  <span x-text="tip.text"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+          <div>
+            <p class="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2">✗ Avoid</p>
+            <div class="space-y-2">
+              <template x-for="tip in bodyDonts">
+                <div class="rounded-xl bg-red-50 p-2.5 flex items-start gap-2 text-xs text-red-600">
+                  <span x-text="tip.icon" class="flex-shrink-0"></span>
+                  <span x-text="tip.text"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div x-show="error" x-transition class="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 mb-4 flex items-start gap-3">
+        <span class="text-lg flex-shrink-0">⚠️</span>
+        <div>
+          <p class="font-bold text-red-700 text-sm mb-0.5" x-text="errorCode"></p>
+          <p class="text-red-600 text-sm" x-text="error"></p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button @click="prevStep()" class="px-6 py-4 rounded-2xl font-bold text-sm text-slate-500 bg-white border-2 border-slate-200 hover:border-slate-300 transition">←</button>
+        <button @click="submitAndNext()" :disabled="!form.photo || loading"
+          class="flex-1 py-4 rounded-2xl font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2"
+          :class="form.photo && !loading
+            ? 'bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800'
+            : 'bg-slate-100 text-slate-400 cursor-not-allowed'">
+          <template x-if="!loading">
+            <span>Analyse My Body →</span>
+          </template>
+          <template x-if="loading">
+            <span class="flex items-center gap-2.5">
+              <svg class="w-5 h-5 spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg>
+              Analysing…
+            </span>
+          </template>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         STEP 5 — AI MEASUREMENTS (loading + results)
+    ══════════════════════════════════════════════════════════ -->
+    <div x-show="step === 5" x-cloak class="step-enter">
+
+      <!-- Loading -->
+      <template x-if="loading">
+        <div class="flex flex-col items-center justify-center py-20 gap-5">
+          <div class="relative w-20 h-20">
+            <div class="w-20 h-20 rounded-full border-4 border-indigo-100"></div>
+            <div class="absolute inset-0 w-20 h-20 rounded-full border-4 border-t-indigo-900 spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center text-2xl">🧬</div>
+          </div>
+          <div class="text-center">
+            <p class="font-black text-indigo-950 text-lg">Analysing your body…</p>
+          </div>
+          <div class="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2">
+            <template x-for="(msg, i) in loadingMessages">
+              <div class="flex items-center gap-1.5">
+                <div class="w-1.5 h-1.5 rounded-full bg-indigo-300 pulse-dot" :style="`animation-delay:${i*0.45}s`"></div>
+                <span class="text-xs text-slate-400" x-text="msg"></span>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <!-- Results -->
+      <template x-if="!loading && result">
+        <div>
+          <div class="mb-4">
+            <div class="flex items-center gap-2 mb-1">
+              <h1 class="text-2xl font-black text-indigo-950 tracking-tight">Your measurements</h1>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700">✓ Ready</span>
+            </div>
+            <p class="text-slate-500 text-sm font-light">AI-extracted · Adjust anything that looks off.</p>
+          </div>
+
+          <!-- BMI -->
+          <div class="rounded-2xl px-5 py-4 flex items-center justify-between mb-4" :style="bmiStyleFrom(result.bmi)">
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-widest opacity-60">BMI</p>
+              <p class="text-3xl font-black leading-none mt-0.5" x-text="result.bmi"></p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-bold" x-text="bmiLabelFrom(result.bmi)"></p>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 inline-block"
+                style="background:rgba(0,0,0,0.1)"
+                x-text="result.method && result.method.includes('hmr2') ? '3D + Formula' : 'Formula'">
+              </span>
+            </div>
+          </div>
+
+          <!-- Edit toggle -->
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-xs text-slate-400">Measurements look off?</p>
+            <button @click="isEditing = !isEditing"
+              class="text-xs font-bold px-4 py-2 rounded-full border-2 transition-all duration-200"
+              :class="isEditing
+                ? 'border-indigo-900 bg-indigo-900 text-white'
+                : 'border-slate-200 text-slate-500 hover:border-indigo-300'">
+              <span x-text="isEditing ? '✓ Done' : '✏️ Edit'"></span>
+            </button>
+          </div>
+
+          <!-- Measurements grid -->
+          <div class="grid grid-cols-2 gap-3 mb-5">
+            <template x-for="key in measurementKeys" :key="key">
+              <div class="mcard rounded-2xl border-2 p-4"
+                :class="isEdited(key) ? 'edited' : 'border-slate-100 bg-white hover:border-indigo-200'">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                  <span x-text="measureMeta[key].icon"></span>
+                  <span x-text="measureMeta[key].label"></span>
+                </p>
+                <input type="number" step="0.1" min="20" max="200"
+                  :value="edited[key]"
+                  @change="updateMeasure(key, $event.target.value)"
+                  :readonly="!isEditing"
+                  class="w-full bg-transparent text-2xl font-black text-indigo-950 focus:outline-none appearance-none border-b-2 transition-colors"
+                  :class="isEditing ? 'border-indigo-300 cursor-text' : 'border-transparent cursor-default'" />
+                <p class="text-xs text-slate-400 mt-0.5">cm
+                  <span x-show="isEdited(key)" class="text-coral-400 ml-1 font-bold text-[10px]">edited</span>
+                </p>
+              </div>
+            </template>
+          </div>
+
+          <div x-show="error" x-transition class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 text-sm text-red-600 flex items-center gap-2">
+            <span>⚠️</span><span x-text="error"></span>
+          </div>
+
+          <!-- Confirm -->
+          <button @click="confirmMeasurements()" :disabled="confirmed"
+            class="w-full py-4 rounded-2xl font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2 mb-3"
+            :class="confirmed
+              ? 'bg-green-50 border-2 border-green-300 text-green-700 cursor-default'
+              : 'bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800'">
+            <span x-text="confirmed ? '✓ Measurements Confirmed' : 'Confirm Measurements'"></span>
+            <svg x-show="!confirmed" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+            </svg>
+          </button>
+
+          <button @click="goToStep(4); result = null; confirmed = false; error = null;"
+            class="w-full py-3 text-slate-400 text-xs font-bold hover:text-slate-600 transition text-center">
+            ← Retake Photo
+          </button>
+
+          <!-- Debug panel -->
+          <div class="mt-4 border-t border-slate-100 pt-4">
+            <button @click="showDebug = !showDebug"
+              class="text-[10px] font-bold text-slate-300 uppercase tracking-widest hover:text-slate-500 transition">
+              <span x-text="showDebug ? '▲ Hide' : '▼ Show'"></span> Raw API Response
+            </button>
+            <pre x-show="showDebug" x-transition
+              class="mt-3 bg-slate-50 rounded-xl p-4 text-xs text-slate-500 overflow-x-auto leading-relaxed"
+              x-text="JSON.stringify(result, null, 2)"></pre>
+          </div>
+        </div>
+      </template>
+
+      <!-- API error with no result -->
+      <template x-if="!loading && !result && error">
+        <div class="text-center py-16">
+          <div class="text-5xl mb-4">⚠️</div>
+          <p class="font-black text-indigo-950 text-lg mb-2">Analysis failed</p>
+          <p class="text-sm font-bold text-red-600 mb-1" x-text="errorCode"></p>
+          <p class="text-sm text-slate-500 mb-8" x-text="error"></p>
+          <button @click="goToStep(4)" class="px-8 py-3 bg-indigo-900 text-white rounded-2xl font-bold text-sm hover:bg-indigo-800 transition">
+            ← Try Again
+          </button>
+        </div>
+      </template>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         STEP 6 — AVATAR + SIZE RECOMMENDER
+    ══════════════════════════════════════════════════════════ -->
+    <div x-show="step === 6" x-cloak class="step-enter">
+      <div class="mb-5">
+        <h1 class="text-2xl font-black text-indigo-950 mb-1 tracking-tight">Your digital twin</h1>
+        <p class="text-slate-500 text-sm font-light">Measurements confirmed. Here's what's being built for you.</p>
+      </div>
+
+      <!-- Avatar card -->
+      <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-4">
+        <div class="bg-gradient-to-br from-indigo-950 to-indigo-800 px-6 py-10 flex flex-col items-center gap-4 relative overflow-hidden">
+          <div class="absolute inset-0 opacity-10"
+            style="background-image:linear-gradient(rgba(99,102,241,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.5) 1px,transparent 1px);background-size:28px 28px"></div>
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-indigo-500 rounded-full blur-3xl opacity-20 pointer-events-none"></div>
+
+          <div class="relative z-10 flex flex-col items-center gap-4">
+            <!-- Avatar placeholder -->
+            <div class="w-28 h-44 rounded-3xl bg-white/10 border border-white/20 flex flex-col items-center justify-start overflow-hidden pt-4 gap-2 relative">
+              <div class="w-10 h-10 rounded-full bg-white/20 border border-white/30"></div>
+              <div class="w-16 h-20 rounded-t-2xl bg-white/10 border border-white/20"></div>
+              <div class="w-16 h-12 bg-white/10 border-l border-r border-white/20"></div>
+              <!-- scanning line animation -->
+              <div class="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-coral-400 to-transparent opacity-70"
+                style="animation: scanLine 2s ease-in-out infinite;"
+              ></div>
+            </div>
+            <style>
+              @keyframes scanLine {
+                0%   { top: 10%; }
+                50%  { top: 90%; }
+                100% { top: 10%; }
+              }
+            </style>
+
+            <div class="text-center">
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 mb-2">
+                <div class="w-1.5 h-1.5 rounded-full bg-coral-400 pulse-dot"></div>
+                <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest">Generating Avatar</span>
+              </div>
+              <p class="text-white font-black text-lg">Coming Soon</p>
+              <p class="text-indigo-300 text-xs font-light mt-0.5">Your 3D avatar is being built</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confirmed measurement strip -->
+        <div class="p-5" x-show="result">
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Confirmed Profile</p>
+          <div class="grid grid-cols-4 gap-2">
+            <template x-for="key in measurementKeys" :key="key">
+              <div class="text-center bg-indigo-50 rounded-2xl py-3">
+                <p class="text-[9px] text-slate-400 font-bold uppercase" x-text="measureMeta[key].label"></p>
+                <p class="text-base font-black text-indigo-950 leading-none mt-1" x-text="(edited && edited[key]) || '—'"></p>
+                <p class="text-[9px] text-slate-300 mt-0.5">cm</p>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Size Recommender teaser -->
+      <div class="bg-white rounded-3xl border-2 border-dashed border-slate-200 p-5 mb-4">
+        <div class="flex items-start gap-4">
+          <div class="w-11 h-11 bg-indigo-50 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl">🎯</div>
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-coral-50 border border-coral-200 mb-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-coral-400 pulse-dot"></span>
+              <span class="text-[10px] font-bold text-coral-500 uppercase tracking-widest">Coming Next</span>
+            </div>
+            <h3 class="font-black text-indigo-950 mb-1 text-sm">AI Size Recommender</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Aina matches your measurements to the brand's specific size chart and tells you exactly what to order — with a fit preference (snug / regular / relaxed).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- What's next checklist -->
+      <div class="bg-indigo-50 rounded-3xl p-5 mb-5">
+        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3">Your journey</p>
+        <div class="space-y-3">
+          <template x-for="item in nextStepsList">
+            <div class="flex items-start gap-3">
+              <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-black mt-0.5"
+                :class="item.done ? 'bg-green-500 text-white' : 'bg-white border-2 border-slate-200 text-slate-400'">
+                <span x-text="item.done ? '✓' : ''"></span>
+              </div>
+              <div>
+                <p class="text-sm font-semibold leading-tight" :class="item.done ? 'text-slate-700' : 'text-slate-400'" x-text="item.label"></p>
+                <p x-show="item.sub" class="text-xs text-slate-400 mt-0.5" x-text="item.sub"></p>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <button @click="goToStep(1); resetAll()"
+        class="w-full py-4 rounded-2xl font-bold text-sm border-2 border-slate-200 text-slate-500 hover:border-indigo-300 hover:text-indigo-900 transition">
+        ↩ Start Over
+      </button>
+    </div>
+
+  </div>
+
+  <p class="text-center text-[10px] text-slate-300 pb-8 uppercase tracking-widest font-semibold">Aina Internal v1 · Not for distribution</p>
+
+<script>
+function aina() {
+  return {
+    // ── State ──────────────────────────────────────────────────────
+    step: 1,
+    totalSteps: 6,
+    stepLabels: ['Gender', 'Body', 'Face', 'Photo', 'Measure', 'Avatar'],
+
+    form: {
+      gender: '',
+      height_cm: 170,
+      weight_kg: '',
+      facePhoto: null,
+      photo: null,
+    },
+
+    photoPreview: null,
+    facePreview: null,
+    loading: false,
+    result: null,
+    error: null,
+    errorCode: '',
+    stepError: '',
+    showDebug: false,
+    isEditing: false,
+    confirmed: false,
+    edited: {},
+
+    // ── Config ─────────────────────────────────────────────────────
+    apiBase: '',
+
+    loadingMessages: ['Detecting body pose', 'Analyzing measurements', 'Applying corrections'],
+
+    measurementKeys: ['chest_cm', 'waist_cm', 'hip_cm', 'shoulder_width_cm'],
+    measureMeta: {
+      chest_cm:          { label: 'Chest',    icon: '📐 ' },
+      waist_cm:          { label: 'Waist',    icon: '📏 ' },
+      hip_cm:            { label: 'Hip',      icon: '📐 ' },
+      shoulder_width_cm: { label: 'Shoulder', icon: '↔️ '  },
+    },
+
+    faceTips: [
+      { icon: '☀️', text: 'Good lighting, no harsh shadows' },
+      { icon: '👁️', text: 'Look straight at camera' },
+      { icon: '😐', text: 'Neutral expression, no filter' },
+      { icon: '🖼️', text: 'Face centred and fully visible' },
+    ],
+
+    bodyDos: [
+      { icon: '📏', text: 'Head to feet in frame' },
+      { icon: '👕', text: 'Fitted clothing' },
+      { icon: '💡', text: 'Good lighting' },
+      { icon: '📱', text: 'Phone at chest height' },
+    ],
+    bodyDonts: [
+      { icon: '🧥', text: 'No baggy / layered clothes' },
+      { icon: '🤳', text: 'No selfies or angled shots' },
+      { icon: '✂️', text: 'No cropped photos' },
+      { icon: '🌑', text: 'No dark or backlit images' },
+    ],
+
+    get nextStepsList() {
+      return [
+        { label: 'Gender & body stats collected',  sub: null,                                         done: true },
+        { label: 'Measurements extracted by AI',   sub: `Chest ${this.edited.chest_cm || '—'} · Waist ${this.edited.waist_cm || '—'} cm`, done: !!this.result },
+        { label: 'AI avatar generation',           sub: 'Rendering your 3D digital twin',            done: false },
+        { label: 'Brand size match',               sub: 'Matched against specific brand size chart', done: false },
+        { label: 'Virtual garment try-on',         sub: null,                                         done: false },
+      ];
+    },
+
+    // ── Computed ───────────────────────────────────────────────────
+    get progressPct() {
+      return Math.round(((this.step - 1) / (this.totalSteps - 1)) * 100);
+    },
+    get bmi() {
+      if (!this.form.height_cm || !this.form.weight_kg) return '';
+      const h = this.form.height_cm / 100;
+      return (this.form.weight_kg / (h * h)).toFixed(1);
+    },
+    get bmiLabel() { return this.bmiLabelFrom(this.bmi); },
+    get bmiStyle()  { return this.bmiStyleFrom(this.bmi); },
+    get canSubmit() {
+      return this.form.gender && this.form.height_cm > 100 && this.form.weight_kg > 30 && this.form.photo;
+    },
+
+    // ── Lifecycle ──────────────────────────────────────────────────
+    init() {},
+
+    // ── Navigation ─────────────────────────────────────────────────
+    goToStep(n) {
+      this.stepError = '';
+      this.step = n;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    nextStep() {
+      this.stepError = '';
+      if (this.step === 1 && !this.form.gender) {
+        this.stepError = 'Please select your gender to continue.';
+        return;
+      }
+      if (this.step === 2) {
+        if (!this.form.height_cm || this.form.height_cm <= 100) {
+          this.stepError = 'Please enter a valid height.';
+          return;
+        }
+        if (!this.form.weight_kg || this.form.weight_kg <= 30) {
+          this.stepError = 'Please enter a valid weight.';
+          return;
+        }
+      }
+      this.goToStep(this.step + 1);
+    },
+    prevStep() {
+      this.stepError = '';
+      this.goToStep(this.step - 1);
+    },
+
+    // ── File handling ──────────────────────────────────────────────
+    handleFaceFile(e) {
+      const f = e.target.files[0];
+      if (f) this.setFacePhoto(f);
+    },
+    handleFaceDrop(e) {
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith('image/')) this.setFacePhoto(f);
+    },
+    setFacePhoto(file) {
+      this.form.facePhoto = file;
+      const r = new FileReader();
+      r.onload = e => { this.facePreview = e.target.result; };
+      r.readAsDataURL(file);
+    },
+
+    handleBodyFile(e) {
+      const f = e.target.files[0];
+      if (f) this.setBodyPhoto(f);
+    },
+    handleBodyDrop(e) {
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith('image/')) this.setBodyPhoto(f);
+    },
+    setBodyPhoto(file) {
+      this.form.photo = file;
+      this.result = null;
+      this.error = null;
+      const r = new FileReader();
+      r.onload = e => { this.photoPreview = e.target.result; };
+      r.readAsDataURL(file);
+    },
+
+    // ── Measurement editing ────────────────────────────────────────
+    updateMeasure(key, val) {
+      this.edited = { ...this.edited, [key]: parseFloat(val) };
+    },
+    isEdited(key) {
+      return this.result && this.edited[key] !== undefined &&
+        this.edited[key] !== this.result[key];
+    },
+
+    // ── Submit ─────────────────────────────────────────────────────
+    async submitAndNext() {
+      if (!this.canSubmit || this.loading) return;
+      this.loading = true;
+      this.error = null;
+      this.errorCode = '';
+      this.result = null;
+      this.goToStep(5);  // navigate immediately to show loader
+
+      const fd = new FormData();
+      fd.append('file',      this.form.photo);
+      fd.append('height_cm', this.form.height_cm);
+      fd.append('weight_kg', this.form.weight_kg);
+      fd.append('gender',    this.form.gender);
+
+      try {
+        const res = await fetch(this.apiBase.replace(/\/$/, '') + '/extract_3d', {
+          method: 'POST',
+          body: fd,
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          const detail = data.detail;
+          if (detail && typeof detail === 'object') {
+            this.errorCode = detail.error_code || 'ERROR';
+            this.error = detail.message || 'Something went wrong.';
+          } else {
+            this.errorCode = `HTTP ${res.status}`;
+            this.error = typeof detail === 'string' ? detail : JSON.stringify(detail);
+          }
+        } else {
+          this.result = data.measurements;
+          this.edited = { ...data.measurements };
+        }
+      } catch (err) {
+        this.errorCode = 'CONNECTION ERROR';
+        this.error = 'Could not reach the API. Make sure the backend is running.';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    confirmMeasurements() {
+      this.confirmed = true;
+      this.isEditing = false;
+      setTimeout(() => this.goToStep(6), 600);
+    },
+
+    // ── Reset ──────────────────────────────────────────────────────
+    resetAll() {
+      this.form = { gender: '', height_cm: 170, weight_kg: '', facePhoto: null, photo: null };
+      this.photoPreview = null;
+      this.facePreview = null;
+      this.result = null;
+      this.edited = {};
+      this.error = null;
+      this.errorCode = '';
+      this.stepError = '';
+      this.loading = false;
+      this.confirmed = false;
+      this.isEditing = false;
+      this.showDebug = false;
+    },
+
+    // ── BMI helpers ────────────────────────────────────────────────
+    bmiLabelFrom(b) {
+      b = parseFloat(b);
+      if (b < 18.5) return 'Underweight';
+      if (b < 25)   return 'Normal weight';
+      if (b < 30)   return 'Overweight';
+      return 'Obese';
+    },
+    bmiStyleFrom(b) {
+      b = parseFloat(b);
+      if (b < 18.5) return 'background:#dbeafe;color:#1d4ed8';
+      if (b < 25)   return 'background:#dcfce7;color:#16a34a';
+      if (b < 30)   return 'background:#fef9c3;color:#ca8a04';
+      return 'background:#fee2e2;color:#dc2626';
+    },
+  };
+}
+</script>
+</body>
+</html>

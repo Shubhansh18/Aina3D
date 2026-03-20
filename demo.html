@@ -73,7 +73,7 @@
         <img src="assets/aina.png" alt="Aina" class="h-8 w-auto object-contain"
           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       </a>
-      <!-- DEV: ngrok URL configurator — remove once backend is live -->
+      <!-- DEV: backend URL configurator — replace apiBase with env var once deployed -->
       <div class="relative" x-data="{ open: false }">
         <button @click="open = !open"
           class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-indigo-300 transition text-xs font-bold text-slate-400 hover:text-indigo-900"
@@ -93,13 +93,13 @@
           x-transition:enter-end="opacity-100 scale-100 translate-y-0"
           class="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 z-50">
 
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Backend URL</p>
-          <p class="text-[10px] text-slate-300 mb-3">Paste your ngrok URL below. Removed once backend is live.</p>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Aina Backend URL</p>
+          <p class="text-[10px] text-slate-300 mb-3">Main backend URL (port 8000). Persisted in localStorage.</p>
 
           <div class="flex gap-2">
             <input type="url"
               :value="apiBase"
-              @change="apiBase = $event.target.value.replace(/\/$/, '')"
+              @change="setApiBase($event.target.value)"
               placeholder="https://xxxx.ngrok-free.app"
               class="flex-1 border-2 border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-700 focus:outline-none focus:border-indigo-400 transition min-w-0" />
             <button @click="open = false"
@@ -111,7 +111,7 @@
           <!-- Status indicator -->
           <div class="mt-3 flex items-center gap-2">
             <div class="w-2 h-2 rounded-full flex-shrink-0"
-              :class="apiBase && apiBase.startsWith('https://') ? 'bg-green-400' : 'bg-red-400'"></div>
+              :class="apiBase ? 'bg-green-400' : 'bg-red-400'"></div>
             <p class="text-[10px] font-mono text-slate-400 truncate" x-text="apiBase || 'No URL set'"></p>
           </div>
         </div>
@@ -410,15 +410,9 @@
             <div class="absolute inset-0 flex items-center justify-center text-2xl">🧬</div>
           </div>
           <div class="text-center">
-            <p class="font-black text-indigo-950 text-lg">Analysing your body…</p>
-          </div>
-          <div class="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2">
-            <template x-for="(msg, i) in loadingMessages">
-              <div class="flex items-center gap-1.5">
-                <div class="w-1.5 h-1.5 rounded-full bg-indigo-300 pulse-dot" :style="`animation-delay:${i*0.45}s`"></div>
-                <span class="text-xs text-slate-400" x-text="msg"></span>
-              </div>
-            </template>
+            <p class="font-black text-indigo-950 text-lg mb-2">Analysing your body…</p>
+            <p class="text-sm text-slate-400 transition-all duration-500" x-text="currentLoadingMsg"></p>
+            <p class="text-xs text-slate-300 mt-2">This takes 8–15 seconds</p>
           </div>
         </div>
       </template>
@@ -641,35 +635,62 @@
 <script>
 function aina() {
   return {
-    // ── State ──────────────────────────────────────────────────────
-    step: 1,
+
+    // ─────────────────────────────────────────────────────────────
+    // STATE
+    // ─────────────────────────────────────────────────────────────
+
+    step:       1,
     totalSteps: 6,
     stepLabels: ['Gender', 'Body', 'Face', 'Photo', 'Measure', 'Avatar'],
 
     form: {
-      gender: '',
+      gender:    '',
       height_cm: 170,
       weight_kg: '',
-      facePhoto: null,
-      photo: null,
+      facePhoto: null,   // File object — uploaded to /session/face-photo
+      photo:     null,   // File object — sent directly to /session/extract
     },
 
-    photoPreview: null,
-    facePreview: null,
-    loading: false,
-    result: null,
-    error: null,
-    errorCode: '',
+    photoPreview: null,  // data URL for body photo preview
+    facePreview:  null,  // data URL for face photo preview
+
+    // API state
+    loading:   false,
+    result:    null,     // measurements object from /session/extract response
+    error:     null,     // user-facing error message string
+    errorCode: '',       // error_code from backend for display
+
+    // Step-level validation error (shown inline before API calls)
     stepError: '',
-    showDebug: false,
+
+    // Measurement editing state
     isEditing: false,
     confirmed: false,
-    edited: {},
+    edited:    {},       // copy of result that user may have adjusted
 
-    // ── Config ─────────────────────────────────────────────────────
+    // Loading message cycling
+    loadingMsgIndex: 0,
+    _loadingTimer:   null,
+
+    // Debug panel toggle
+    showDebug: false,
+
+    // ─────────────────────────────────────────────────────────────
+    // CONFIG
+    // ─────────────────────────────────────────────────────────────
+
+    // Persisted in localStorage so it survives page reloads during dev.
+    // In production this should be baked in as a build-time constant.
     apiBase: '',
 
-    loadingMessages: ['Detecting body pose', 'Analyzing measurements', 'Applying corrections'],
+    loadingMessages: [
+      'Detecting body pose…',
+      'Building 3D mesh…',
+      'Extracting measurements…',
+      'Applying body corrections…',
+      'Almost there…',
+    ],
 
     measurementKeys: ['chest_cm', 'waist_cm', 'hip_cm', 'shoulder_width_cm'],
     measureMeta: {
@@ -680,9 +701,9 @@ function aina() {
     },
 
     faceTips: [
-      { icon: '☀️', text: 'Good lighting, no harsh shadows' },
+      { icon: '☀️',  text: 'Good lighting, no harsh shadows' },
       { icon: '👁️', text: 'Look straight at camera' },
-      { icon: '😐', text: 'Neutral expression, no filter' },
+      { icon: '😐',  text: 'Neutral expression, no filter' },
       { icon: '🖼️', text: 'Face centred and fully visible' },
     ],
 
@@ -699,17 +720,10 @@ function aina() {
       { icon: '🌑', text: 'No dark or backlit images' },
     ],
 
-    get nextStepsList() {
-      return [
-        { label: 'Gender & body stats collected',  sub: null,                                         done: true },
-        { label: 'Measurements extracted by AI',   sub: `Chest ${this.edited.chest_cm || '—'} · Waist ${this.edited.waist_cm || '—'} cm`, done: !!this.result },
-        { label: 'AI avatar generation',           sub: 'Rendering your 3D digital twin',            done: false },
-        { label: 'Brand size match',               sub: 'Matched against specific brand size chart', done: false },
-        { label: 'Virtual garment try-on',         sub: null,                                         done: false },
-      ];
-    },
+    // ─────────────────────────────────────────────────────────────
+    // COMPUTED
+    // ─────────────────────────────────────────────────────────────
 
-    // ── Computed ───────────────────────────────────────────────────
     get progressPct() {
       return Math.round(((this.step - 1) / (this.totalSteps - 1)) * 100);
     },
@@ -723,40 +737,100 @@ function aina() {
     get canSubmit() {
       return this.form.gender && this.form.height_cm > 100 && this.form.weight_kg > 30 && this.form.photo;
     },
+    get currentLoadingMsg() {
+      return this.loadingMessages[this.loadingMsgIndex % this.loadingMessages.length];
+    },
+    get nextStepsList() {
+      return [
+        { label: 'Gender & body stats collected',  sub: null, done: true },
+        { label: 'Measurements extracted by AI',   sub: `Chest ${this.edited.chest_cm || '—'} · Waist ${this.edited.waist_cm || '—'} cm`, done: !!this.result },
+        { label: 'AI avatar generation',           sub: 'Rendering your 3D digital twin',            done: false },
+        { label: 'Brand size match',               sub: 'Matched against specific brand size chart', done: false },
+        { label: 'Virtual garment try-on',         sub: null,                                         done: false },
+      ];
+    },
 
-    // ── Lifecycle ──────────────────────────────────────────────────
-    init() {},
+    // ─────────────────────────────────────────────────────────────
+    // LIFECYCLE
+    // ─────────────────────────────────────────────────────────────
 
-    // ── Navigation ─────────────────────────────────────────────────
+    init() {
+      // Restore persisted backend URL across page reloads
+      this.apiBase = localStorage.getItem('aina_api_base') || '';
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // CONFIG HELPERS
+    // ─────────────────────────────────────────────────────────────
+
+    setApiBase(val) {
+      this.apiBase = val.replace(/\/$/, '');
+      localStorage.setItem('aina_api_base', this.apiBase);
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // NAVIGATION
+    // ─────────────────────────────────────────────────────────────
+
     goToStep(n) {
       this.stepError = '';
       this.step = n;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
-    nextStep() {
+
+    // nextStep handles validation AND fires API calls at the right moments
+    async nextStep() {
       this.stepError = '';
-      if (this.step === 1 && !this.form.gender) {
-        this.stepError = 'Please select your gender to continue.';
+
+      // ── Step 1 → 2: just validate gender, no API call yet ──────
+      if (this.step === 1) {
+        if (!this.form.gender) {
+          this.stepError = 'Please select your gender to continue.';
+          return;
+        }
+        this.goToStep(2);
         return;
       }
+
+      // ── Step 2 → 3: validate height/weight then POST /session ──
       if (this.step === 2) {
         if (!this.form.height_cm || this.form.height_cm <= 100) {
-          this.stepError = 'Please enter a valid height.';
+          this.stepError = 'Please enter a valid height (greater than 100 cm).';
           return;
         }
         if (!this.form.weight_kg || this.form.weight_kg <= 30) {
-          this.stepError = 'Please enter a valid weight.';
+          this.stepError = 'Please enter a valid weight (greater than 30 kg).';
           return;
         }
+        const ok = await this._createSession();
+        if (!ok) return;   // stepError already set inside _createSession
+        this.goToStep(3);
+        return;
       }
+
+      // ── Step 3 → 4: upload face photo if provided, then navigate
+      if (this.step === 3) {
+        if (this.form.facePhoto) {
+          const ok = await this._uploadFacePhoto();
+          if (!ok) return;
+        }
+        this.goToStep(4);
+        return;
+      }
+
+      // Steps 4+ use submitAndNext or explicit goToStep calls
       this.goToStep(this.step + 1);
     },
+
     prevStep() {
       this.stepError = '';
       this.goToStep(this.step - 1);
     },
 
-    // ── File handling ──────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // FILE HANDLING
+    // ─────────────────────────────────────────────────────────────
+
     handleFaceFile(e) {
       const f = e.target.files[0];
       if (f) this.setFacePhoto(f);
@@ -782,14 +856,18 @@ function aina() {
     },
     setBodyPhoto(file) {
       this.form.photo = file;
-      this.result = null;
-      this.error = null;
+      this.result     = null;
+      this.error      = null;
+      this.errorCode  = '';
       const r = new FileReader();
       r.onload = e => { this.photoPreview = e.target.result; };
       r.readAsDataURL(file);
     },
 
-    // ── Measurement editing ────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // MEASUREMENT EDITING
+    // ─────────────────────────────────────────────────────────────
+
     updateMeasure(key, val) {
       this.edited = { ...this.edited, [key]: parseFloat(val) };
     },
@@ -798,47 +876,39 @@ function aina() {
         this.edited[key] !== this.result[key];
     },
 
-    // ── Submit ─────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // SUBMIT (Step 4 → 5)
+    // ─────────────────────────────────────────────────────────────
+
     async submitAndNext() {
       if (!this.canSubmit || this.loading) return;
-      this.loading = true;
-      this.error = null;
+
+      this.loading   = true;
+      this.error     = null;
       this.errorCode = '';
-      this.result = null;
-      this.goToStep(5);  // navigate immediately to show loader
+      this.result    = null;
+      this.goToStep(5);          // navigate immediately so loader is visible
+      this._startLoadingCycle(); // start cycling loading messages
 
       const fd = new FormData();
-      fd.append('file',      this.form.photo);
-      fd.append('height_cm', this.form.height_cm);
-      fd.append('weight_kg', this.form.weight_kg);
-      fd.append('gender',    this.form.gender);
+      fd.append('file', this.form.photo);
 
       try {
-        const res = await fetch(this.apiBase.replace(/\/$/, '') + '/extract_3d', {
-          method: 'POST',
-          body: fd,
-          headers: { 'ngrok-skip-browser-warning': 'true' },
-        });
+        const res = await this._fetch('/session/extract', { method: 'POST', body: fd });
         const data = await res.json();
 
         if (!res.ok) {
-          const detail = data.detail;
-          if (detail && typeof detail === 'object') {
-            this.errorCode = detail.error_code || 'ERROR';
-            this.error = detail.message || 'Something went wrong.';
-          } else {
-            this.errorCode = `HTTP ${res.status}`;
-            this.error = typeof detail === 'string' ? detail : JSON.stringify(detail);
-          }
+          this._handleApiError(data);
         } else {
           this.result = data.measurements;
           this.edited = { ...data.measurements };
         }
       } catch (err) {
-        this.errorCode = 'CONNECTION ERROR';
-        this.error = 'Could not reach the API. Make sure the backend is running.';
+        this.errorCode = 'CONNECTION_ERROR';
+        this.error = 'Could not reach the backend. Check the API URL in the top-right menu.';
       } finally {
         this.loading = false;
+        this._stopLoadingCycle();
       }
     },
 
@@ -848,23 +918,153 @@ function aina() {
       setTimeout(() => this.goToStep(6), 600);
     },
 
-    // ── Reset ──────────────────────────────────────────────────────
-    resetAll() {
-      this.form = { gender: '', height_cm: 170, weight_kg: '', facePhoto: null, photo: null };
+    // ─────────────────────────────────────────────────────────────
+    // RESET
+    // ─────────────────────────────────────────────────────────────
+
+    async resetAll() {
+      // Tell the backend to clear the session cookie
+      try {
+        await this._fetch('/session/reset', { method: 'POST' });
+      } catch (_) {
+        // Non-fatal — local state is cleared regardless
+      }
+
+      this.form         = { gender: '', height_cm: 170, weight_kg: '', facePhoto: null, photo: null };
       this.photoPreview = null;
-      this.facePreview = null;
-      this.result = null;
-      this.edited = {};
-      this.error = null;
-      this.errorCode = '';
-      this.stepError = '';
-      this.loading = false;
-      this.confirmed = false;
-      this.isEditing = false;
-      this.showDebug = false;
+      this.facePreview  = null;
+      this.result       = null;
+      this.edited       = {};
+      this.error        = null;
+      this.errorCode    = '';
+      this.stepError    = '';
+      this.loading      = false;
+      this.confirmed    = false;
+      this.isEditing    = false;
+      this.showDebug    = false;
+      this._stopLoadingCycle();
     },
 
-    // ── BMI helpers ────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // PRIVATE — API CALLS
+    // ─────────────────────────────────────────────────────────────
+
+    // POST /session — called once at end of Step 2
+    async _createSession() {
+      if (!this._checkApiBase()) return false;
+      try {
+        const res = await this._fetch('/session', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            gender:    this.form.gender,
+            height_cm: this.form.height_cm,
+            weight_kg: this.form.weight_kg,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          this._handleStepError(data);
+          return false;
+        }
+        return true;
+      } catch (err) {
+        this.stepError = 'Could not connect to the backend. Check the API URL.';
+        return false;
+      }
+    },
+
+    // POST /session/face-photo — called at end of Step 3 if photo provided
+    async _uploadFacePhoto() {
+      if (!this._checkApiBase()) return false;
+      try {
+        const fd = new FormData();
+        fd.append('file', this.form.facePhoto);
+        const res = await this._fetch('/session/face-photo', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) {
+          this._handleStepError(data);
+          return false;
+        }
+        return true;
+      } catch (err) {
+        // Face photo upload failure is non-fatal — we warn but let the user proceed
+        this.stepError = 'Face photo upload failed. You can continue without it.';
+        return false;
+      }
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // PRIVATE — FETCH WRAPPER
+    // ─────────────────────────────────────────────────────────────
+
+    // Central fetch wrapper — always includes:
+    //   credentials: 'include'  → sends the session cookie on every request
+    //   base URL prepended      → no URL strings scattered across the component
+    _fetch(path, options = {}) {
+      if (!this.apiBase) throw new Error('No API base URL configured.');
+      return fetch(this.apiBase + path, {
+        ...options,
+        credentials: 'include',   // required for HttpOnly session cookie
+      });
+    },
+
+    _checkApiBase() {
+      if (!this.apiBase) {
+        this.stepError = 'No backend URL set. Tap the API button in the top-right corner.';
+        return false;
+      }
+      return true;
+    },
+
+    // Parse a non-ok API response into user-facing error + errorCode
+    _handleApiError(data) {
+      const detail = data.detail;
+      if (detail && typeof detail === 'object') {
+        this.errorCode = detail.error_code || 'ERROR';
+        this.error     = detail.message    || 'Something went wrong. Please try again.';
+      } else {
+        this.errorCode = 'ERROR';
+        this.error     = typeof detail === 'string' ? detail : 'Something went wrong. Please try again.';
+      }
+    },
+
+    // Same but writes to stepError (shown inline on step, not on Step 5 results)
+    _handleStepError(data) {
+      const detail = data.detail;
+      if (detail && typeof detail === 'object') {
+        this.stepError = detail.message || 'Something went wrong. Please try again.';
+      } else {
+        this.stepError = typeof detail === 'string' ? detail : 'Something went wrong. Please try again.';
+      }
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // PRIVATE — LOADING MESSAGE CYCLING
+    // ─────────────────────────────────────────────────────────────
+
+    _startLoadingCycle() {
+      this.loadingMsgIndex = 0;
+      this._loadingTimer = setInterval(() => {
+        // Stop cycling once we've shown the last message — avoids looping back
+        if (this.loadingMsgIndex < this.loadingMessages.length - 1) {
+          this.loadingMsgIndex++;
+        }
+      }, 3000);
+    },
+
+    _stopLoadingCycle() {
+      if (this._loadingTimer) {
+        clearInterval(this._loadingTimer);
+        this._loadingTimer = null;
+      }
+      this.loadingMsgIndex = 0;
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // BMI HELPERS
+    // ─────────────────────────────────────────────────────────────
+
     bmiLabelFrom(b) {
       b = parseFloat(b);
       if (b < 18.5) return 'Underweight';
@@ -879,6 +1079,7 @@ function aina() {
       if (b < 30)   return 'background:#fef9c3;color:#ca8a04';
       return 'background:#fee2e2;color:#dc2626';
     },
+
   };
 }
 </script>

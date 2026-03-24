@@ -43,6 +43,12 @@
   @keyframes pulse-dot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.8); } }
   .pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
 
+  @keyframes scanLine {
+    0%   { top: 8%; }
+    50%  { top: 88%; }
+    100% { top: 8%; }
+  }
+
   .upload-zone { transition: border-color 0.18s, background 0.18s; }
   .upload-zone:hover { border-color: #818cf8; background: #eef2ff; }
   .upload-zone.has-file { border-color: #6366f1; background: #eef2ff; }
@@ -60,6 +66,20 @@
     background: #312e81; cursor: pointer; margin-top: -9px;
     box-shadow: 0 2px 8px rgba(49,46,129,0.35);
   }
+
+  @keyframes avatarReveal {
+    from { opacity: 0; transform: scale(0.92) translateY(12px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .avatar-reveal { animation: avatarReveal 0.6s cubic-bezier(0.22,1,0.36,1) both; }
+
+  /* Confirm button: shrink → checkmark transition */
+  .btn-confirm-done {
+    background: #f0fdf4;
+    border: 2px solid #86efac;
+    color: #15803d;
+    cursor: default;
+  }
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 </head>
@@ -71,48 +91,51 @@
     <div class="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
       <a href="/" class="flex items-center gap-2">
         <img src="assets/aina.png" alt="Aina" class="h-8 w-auto object-contain"
-          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          onerror="this.style.display='none'">
       </a>
-      <!-- DEV: backend URL configurator — replace apiBase with env var once deployed -->
-      <div class="relative" x-data="{ open: false }">
-        <button @click="open = !open"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-indigo-300 transition text-xs font-bold text-slate-400 hover:text-indigo-900"
-          :class="apiBase ? 'border-green-300 text-green-600' : ''">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-          </svg>
-          API
-        </button>
 
-        <!-- Dropdown -->
-        <div x-show="open" x-cloak @click.away="open = false"
-          x-transition:enter="transition ease-out duration-150"
-          x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
-          x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-          class="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 z-50">
+      <div class="flex items-center gap-3">
+        <!-- Session restored pill — hidden once acknowledged -->
+        <div x-show="sessionRestored" x-transition
+          class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 border border-green-200 text-[10px] font-bold text-green-600 cursor-pointer"
+          @click="sessionRestored = false">
+          <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+          Session restored ✕
+        </div>
 
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Aina Backend URL</p>
-          <p class="text-[10px] text-slate-300 mb-3">Main backend URL (port 8000). Persisted in localStorage.</p>
+        <!-- API URL configurator -->
+        <div class="relative" x-data="{ open: false }">
+          <button @click="open = !open"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-indigo-300 transition text-xs font-bold"
+            :class="apiBase ? 'text-green-600 border-green-300' : 'text-slate-400'">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            API
+          </button>
 
-          <div class="flex gap-2">
-            <input type="url"
-              :value="apiBase"
-              @change="setApiBase($event.target.value)"
-              placeholder="https://xxxx.ngrok-free.app"
-              class="flex-1 border-2 border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-700 focus:outline-none focus:border-indigo-400 transition min-w-0" />
-            <button @click="open = false"
-              class="px-3 py-2 bg-indigo-900 text-white rounded-xl text-xs font-bold hover:bg-indigo-800 transition flex-shrink-0">
-              Save
-            </button>
-          </div>
-
-          <!-- Status indicator -->
-          <div class="mt-3 flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full flex-shrink-0"
-              :class="apiBase ? 'bg-green-400' : 'bg-red-400'"></div>
-            <p class="text-[10px] font-mono text-slate-400 truncate" x-text="apiBase || 'No URL set'"></p>
+          <div x-show="open" x-cloak @click.away="open = false"
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            class="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 z-50">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Aina Backend URL</p>
+            <p class="text-[10px] text-slate-300 mb-3">Main backend URL (port 8000). Persisted in localStorage.</p>
+            <div class="flex gap-2">
+              <input type="url" :value="apiBase" @change="setApiBase($event.target.value)"
+                placeholder="https://xxxx.ngrok-free.app"
+                class="flex-1 border-2 border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-700 focus:outline-none focus:border-indigo-400 transition min-w-0" />
+              <button @click="open = false"
+                class="px-3 py-2 bg-indigo-900 text-white rounded-xl text-xs font-bold hover:bg-indigo-800 transition flex-shrink-0">
+                Save
+              </button>
+            </div>
+            <div class="mt-3 flex items-center gap-2">
+              <div class="w-2 h-2 rounded-full flex-shrink-0" :class="apiBase ? 'bg-green-400' : 'bg-red-400'"></div>
+              <p class="text-[10px] font-mono text-slate-400 truncate" x-text="apiBase || 'No URL set'"></p>
+            </div>
           </div>
         </div>
       </div>
@@ -121,7 +144,7 @@
 
   <div class="max-w-lg mx-auto px-4 pt-20 pb-20">
 
-    <!-- ── Progress ── -->
+    <!-- ── Progress bar ── -->
     <div class="mb-6 pt-4">
       <div class="flex justify-between mb-2">
         <template x-for="(label, i) in stepLabels" :key="i">
@@ -168,7 +191,8 @@
         </div>
       </div>
 
-      <div x-show="stepError" x-transition class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 text-sm text-red-600 flex items-center gap-2">
+      <div x-show="stepError" x-transition
+        class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 text-sm text-red-600 flex items-center gap-2">
         <span>⚠️</span><span x-text="stepError"></span>
       </div>
 
@@ -194,8 +218,6 @@
       </div>
 
       <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-4 space-y-5">
-
-        <!-- Height slider -->
         <div>
           <div class="flex items-center justify-between mb-3">
             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Height</label>
@@ -223,7 +245,6 @@
           </div>
         </div>
 
-        <!-- BMI live card -->
         <div x-show="form.height_cm > 100 && form.weight_kg > 0" x-transition
           class="rounded-2xl px-5 py-4 flex items-center justify-between" :style="bmiStyle">
           <div>
@@ -237,20 +258,36 @@
         </div>
       </div>
 
-      <div x-show="stepError" x-transition class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 text-sm text-red-600 flex items-center gap-2">
+      <div x-show="stepError" x-transition
+        class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 text-sm text-red-600 flex items-center gap-2">
         <span>⚠️</span><span x-text="stepError"></span>
       </div>
 
       <div class="flex gap-3">
-        <button @click="prevStep()" class="px-6 py-4 rounded-2xl font-bold text-sm text-slate-500 bg-white border-2 border-slate-200 hover:border-slate-300 transition">←</button>
-        <button @click="nextStep()" class="flex-1 py-4 rounded-2xl font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2"
-          :class="form.height_cm > 100 && form.weight_kg > 30
+        <button @click="prevStep()"
+          class="px-6 py-4 rounded-2xl font-bold text-sm text-slate-500 bg-white border-2 border-slate-200 hover:border-slate-300 transition">←</button>
+        <button @click="nextStep()" :disabled="sessionLoading"
+          class="flex-1 py-4 rounded-2xl font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2"
+          :class="form.height_cm > 100 && form.weight_kg > 30 && !sessionLoading
             ? 'bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800'
             : 'bg-slate-100 text-slate-400 cursor-not-allowed'">
-          Continue
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-          </svg>
+          <template x-if="!sessionLoading">
+            <span class="flex items-center gap-2">
+              Continue
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+              </svg>
+            </span>
+          </template>
+          <template x-if="sessionLoading">
+            <span class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg>
+              Saving…
+            </span>
+          </template>
         </button>
       </div>
     </div>
@@ -261,7 +298,7 @@
     <div x-show="step === 3" x-cloak class="step-enter">
       <div class="mb-5">
         <h1 class="text-2xl font-black text-indigo-950 mb-1 tracking-tight">Your face photo</h1>
-        <p class="text-slate-500 text-sm font-light">Used to generate your personalised AI avatar. Stays on your device.</p>
+        <p class="text-slate-500 text-sm font-light">Used to generate your personalised AI avatar.</p>
       </div>
 
       <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-3">
@@ -269,7 +306,6 @@
           :class="form.facePhoto ? 'has-file' : ''"
           @dragover.prevent @drop.prevent="handleFaceDrop($event)">
           <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="handleFaceFile($event)" />
-
           <template x-if="facePreview">
             <div class="flex flex-col items-center gap-3">
               <img :src="facePreview" class="w-32 h-32 object-cover rounded-full border-4 border-indigo-200 shadow-md mx-auto" />
@@ -280,10 +316,20 @@
             <div class="py-3">
               <div class="text-4xl mb-3">🤳</div>
               <p class="font-bold text-slate-700 mb-1">Upload a selfie</p>
-              <p class="text-xs text-slate-400">JPG or PNG · Max 10MB</p>
+              <p class="text-xs text-slate-400">JPG, PNG or WebP · Max 10MB</p>
             </div>
           </template>
         </label>
+
+        <!-- Non-fatal upload warning — user can still continue -->
+        <div x-show="faceUploadWarn" x-transition
+          class="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 flex items-start gap-2 text-sm text-amber-700">
+          <span class="flex-shrink-0 mt-0.5">⚠️</span>
+          <div>
+            <p class="font-semibold">Face photo upload failed</p>
+            <p class="text-xs mt-0.5 text-amber-600">Your avatar will still be generated from your body photo. You can continue.</p>
+          </div>
+        </div>
 
         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Photo tips</p>
         <div class="grid grid-cols-2 gap-2">
@@ -296,15 +342,30 @@
         </div>
       </div>
 
-      <p class="text-center text-xs text-slate-400 mb-4">Face photo is optional — you can skip and add it later.</p>
+      <p class="text-center text-xs text-slate-400 mb-4">Face photo is optional — you can skip.</p>
 
       <div class="flex gap-3">
-        <button @click="prevStep()" class="px-6 py-4 rounded-2xl font-bold text-sm text-slate-500 bg-white border-2 border-slate-200 hover:border-slate-300 transition">←</button>
-        <button @click="nextStep()" class="flex-1 py-4 rounded-2xl font-bold text-sm bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800 transition flex items-center justify-center gap-2">
-          <span x-text="form.facePhoto ? 'Continue' : 'Skip for now'"></span>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-          </svg>
+        <button @click="prevStep()"
+          class="px-6 py-4 rounded-2xl font-bold text-sm text-slate-500 bg-white border-2 border-slate-200 hover:border-slate-300 transition">←</button>
+        <button @click="nextStep()" :disabled="faceUploading"
+          class="flex-1 py-4 rounded-2xl font-bold text-sm bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800 transition flex items-center justify-center gap-2">
+          <template x-if="!faceUploading">
+            <span class="flex items-center gap-2">
+              <span x-text="form.facePhoto && !faceUploadWarn ? 'Continue' : 'Skip for now'"></span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+              </svg>
+            </span>
+          </template>
+          <template x-if="faceUploading">
+            <span class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg>
+              Uploading…
+            </span>
+          </template>
         </button>
       </div>
     </div>
@@ -323,7 +384,6 @@
           :class="form.photo ? 'has-file' : ''"
           @dragover.prevent @drop.prevent="handleBodyDrop($event)">
           <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="handleBodyFile($event)" />
-
           <template x-if="photoPreview">
             <div>
               <img :src="photoPreview" class="w-full max-h-64 object-cover rounded-xl mx-auto mb-2" />
@@ -334,7 +394,7 @@
             <div class="py-3">
               <div class="text-4xl mb-3">📸</div>
               <p class="font-bold text-slate-700 mb-1">Upload full body photo</p>
-              <p class="text-xs text-slate-400">JPG or PNG · Max 10MB</p>
+              <p class="text-xs text-slate-400">JPG, PNG or WebP · Max 10MB</p>
             </div>
           </template>
         </label>
@@ -365,7 +425,8 @@
         </div>
       </div>
 
-      <div x-show="error" x-transition class="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 mb-4 flex items-start gap-3">
+      <div x-show="error" x-transition
+        class="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 mb-4 flex items-start gap-3">
         <span class="text-lg flex-shrink-0">⚠️</span>
         <div>
           <p class="font-bold text-red-700 text-sm mb-0.5" x-text="errorCode"></p>
@@ -374,15 +435,14 @@
       </div>
 
       <div class="flex gap-3">
-        <button @click="prevStep()" class="px-6 py-4 rounded-2xl font-bold text-sm text-slate-500 bg-white border-2 border-slate-200 hover:border-slate-300 transition">←</button>
+        <button @click="prevStep()"
+          class="px-6 py-4 rounded-2xl font-bold text-sm text-slate-500 bg-white border-2 border-slate-200 hover:border-slate-300 transition">←</button>
         <button @click="submitAndNext()" :disabled="!form.photo || loading"
           class="flex-1 py-4 rounded-2xl font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2"
           :class="form.photo && !loading
             ? 'bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800'
             : 'bg-slate-100 text-slate-400 cursor-not-allowed'">
-          <template x-if="!loading">
-            <span>Analyse My Body →</span>
-          </template>
+          <template x-if="!loading"><span>Analyse My Body →</span></template>
           <template x-if="loading">
             <span class="flex items-center gap-2.5">
               <svg class="w-5 h-5 spin" fill="none" viewBox="0 0 24 24">
@@ -397,7 +457,7 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════════════
-         STEP 5 — AI MEASUREMENTS (loading + results)
+         STEP 5 — MEASUREMENTS
     ══════════════════════════════════════════════════════════ -->
     <div x-show="step === 5" x-cloak class="step-enter">
 
@@ -436,10 +496,6 @@
             </div>
             <div class="text-right">
               <p class="text-sm font-bold" x-text="bmiLabelFrom(result.bmi)"></p>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 inline-block"
-                style="background:rgba(0,0,0,0.1)"
-                x-text="result.method && result.method.includes('hmr2') ? '3D + Formula' : 'Formula'">
-              </span>
             </div>
           </div>
 
@@ -451,12 +507,12 @@
               :class="isEditing
                 ? 'border-indigo-900 bg-indigo-900 text-white'
                 : 'border-slate-200 text-slate-500 hover:border-indigo-300'">
-              <span x-text="isEditing ? '✓ Done' : '✏️ Edit'"></span>
+              <span x-text="isEditing ? '✓ Done editing' : '✏️ Edit'"></span>
             </button>
           </div>
 
           <!-- Measurements grid -->
-          <div class="grid grid-cols-2 gap-3 mb-5">
+          <div class="grid grid-cols-2 gap-3 mb-4">
             <template x-for="key in measurementKeys" :key="key">
               <div class="mcard rounded-2xl border-2 p-4"
                 :class="isEdited(key) ? 'edited' : 'border-slate-100 bg-white hover:border-indigo-200'">
@@ -477,23 +533,54 @@
             </template>
           </div>
 
-          <div x-show="error" x-transition class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-4 text-sm text-red-600 flex items-center gap-2">
-            <span>⚠️</span><span x-text="error"></span>
+          <!-- Edited values notice -->
+          <div x-show="hasAnyEdit && !isEditing" x-transition
+            class="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 flex items-start gap-2 text-xs text-amber-700">
+            <span class="flex-shrink-0 mt-0.5">✏️</span>
+            <span>Your edited values will be used for size recommendations. The avatar is generated from your body photo.</span>
           </div>
 
-          <!-- Confirm -->
-          <button @click="confirmMeasurements()" :disabled="confirmed"
-            class="w-full py-4 rounded-2xl font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2 mb-3"
+          <!-- Editing reminder — confirm button disabled while editing -->
+          <div x-show="isEditing" x-transition
+            class="bg-indigo-50 border border-indigo-200 rounded-2xl px-4 py-3 mb-4 flex items-center gap-2 text-xs text-indigo-700">
+            <span>💡</span>
+            <span>Tap "Done editing" above before confirming your measurements.</span>
+          </div>
+
+          <!-- Confirm button -->
+          <!--
+            FIX: Previously used setTimeout(400) to allow button animation before navigating.
+            This was fragile — a 400ms timer driving navigation logic is a race condition.
+            Now: confirmed=true flips the button to its done state instantly (CSS transition),
+            and the Alpine x-effect watcher handles navigation + avatar trigger reactively
+            once confirmed becomes true. No timer involved.
+          -->
+          <button @click="confirmMeasurements()"
+            :disabled="confirmed || isEditing || confirmLoading"
+            class="w-full py-4 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 mb-3"
             :class="confirmed
-              ? 'bg-green-50 border-2 border-green-300 text-green-700 cursor-default'
-              : 'bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800'">
-            <span x-text="confirmed ? '✓ Measurements Confirmed' : 'Confirm Measurements'"></span>
-            <svg x-show="!confirmed" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              ? 'btn-confirm-done'
+              : (isEditing || confirmLoading)
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                : 'bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800'">
+            <template x-if="confirmLoading">
+              <span class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                Saving…
+              </span>
+            </template>
+            <template x-if="!confirmLoading">
+              <span x-text="confirmed ? '✓ Measurements Confirmed — Moving on…' : 'Confirm & Generate Avatar'"></span>
+            </template>
+            <svg x-show="!confirmed && !isEditing && !confirmLoading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
             </svg>
           </button>
 
-          <button @click="goToStep(4); result = null; confirmed = false; error = null;"
+          <button @click="retakePhoto()"
             class="w-full py-3 text-slate-400 text-xs font-bold hover:text-slate-600 transition text-center">
             ← Retake Photo
           </button>
@@ -511,14 +598,15 @@
         </div>
       </template>
 
-      <!-- API error with no result -->
+      <!-- Extraction failed, no result -->
       <template x-if="!loading && !result && error">
         <div class="text-center py-16">
           <div class="text-5xl mb-4">⚠️</div>
           <p class="font-black text-indigo-950 text-lg mb-2">Analysis failed</p>
           <p class="text-sm font-bold text-red-600 mb-1" x-text="errorCode"></p>
           <p class="text-sm text-slate-500 mb-8" x-text="error"></p>
-          <button @click="goToStep(4)" class="px-8 py-3 bg-indigo-900 text-white rounded-2xl font-bold text-sm hover:bg-indigo-800 transition">
+          <button @click="goToStep(4)"
+            class="px-8 py-3 bg-indigo-900 text-white rounded-2xl font-bold text-sm hover:bg-indigo-800 transition">
             ← Try Again
           </button>
         </div>
@@ -526,111 +614,237 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════════════
-         STEP 6 — AVATAR + SIZE RECOMMENDER
+         STEP 6 — AVATAR
     ══════════════════════════════════════════════════════════ -->
     <div x-show="step === 6" x-cloak class="step-enter">
-      <div class="mb-5">
-        <h1 class="text-2xl font-black text-indigo-950 mb-1 tracking-tight">Your digital twin</h1>
-        <p class="text-slate-500 text-sm font-light">Measurements confirmed. Here's what's being built for you.</p>
-      </div>
 
-      <!-- Avatar card -->
-      <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-4">
-        <div class="bg-gradient-to-br from-indigo-950 to-indigo-800 px-6 py-10 flex flex-col items-center gap-4 relative overflow-hidden">
-          <div class="absolute inset-0 opacity-10"
-            style="background-image:linear-gradient(rgba(99,102,241,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.5) 1px,transparent 1px);background-size:28px 28px"></div>
-          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-indigo-500 rounded-full blur-3xl opacity-20 pointer-events-none"></div>
+      <!-- ── Generating ── -->
+      <template x-if="avatarLoading">
+        <div>
+          <div class="mb-5">
+            <h1 class="text-2xl font-black text-indigo-950 mb-1 tracking-tight">Building your digital twin</h1>
+            <p class="text-slate-500 text-sm font-light">Our AI is generating your personalised avatar. This takes 15–45 seconds.</p>
+          </div>
 
-          <div class="relative z-10 flex flex-col items-center gap-4">
-            <!-- Avatar placeholder -->
-            <div class="w-28 h-44 rounded-3xl bg-white/10 border border-white/20 flex flex-col items-center justify-start overflow-hidden pt-4 gap-2 relative">
-              <div class="w-10 h-10 rounded-full bg-white/20 border border-white/30"></div>
-              <div class="w-16 h-20 rounded-t-2xl bg-white/10 border border-white/20"></div>
-              <div class="w-16 h-12 bg-white/10 border-l border-r border-white/20"></div>
-              <!-- scanning line animation -->
-              <div class="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-coral-400 to-transparent opacity-70"
-                style="animation: scanLine 2s ease-in-out infinite;"
-              ></div>
-            </div>
-            <style>
-              @keyframes scanLine {
-                0%   { top: 10%; }
-                50%  { top: 90%; }
-                100% { top: 10%; }
-              }
-            </style>
+          <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-4">
+            <div class="bg-gradient-to-br from-indigo-950 to-indigo-800 px-6 py-12 flex flex-col items-center gap-5 relative overflow-hidden">
+              <div class="absolute inset-0 opacity-10"
+                style="background-image:linear-gradient(rgba(99,102,241,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.5) 1px,transparent 1px);background-size:28px 28px"></div>
 
-            <div class="text-center">
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 mb-2">
-                <div class="w-1.5 h-1.5 rounded-full bg-coral-400 pulse-dot"></div>
-                <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest">Generating Avatar</span>
+              <!-- Skeleton avatar -->
+              <div class="relative w-28 h-48 rounded-3xl bg-white/10 border border-white/20 flex flex-col items-center justify-start overflow-hidden pt-4 gap-2">
+                <div class="w-10 h-10 rounded-full bg-white/20 border border-white/30"></div>
+                <div class="w-16 h-20 rounded-t-2xl bg-white/10 border border-white/20"></div>
+                <div class="w-16 h-14 bg-white/10 border-l border-r border-white/20"></div>
+                <div class="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-coral-400 to-transparent opacity-80"
+                  style="animation: scanLine 2s ease-in-out infinite;"></div>
               </div>
-              <p class="text-white font-black text-lg">Coming Soon</p>
-              <p class="text-indigo-300 text-xs font-light mt-0.5">Your 3D avatar is being built</p>
+
+              <div class="text-center">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 mb-3">
+                  <div class="w-1.5 h-1.5 rounded-full bg-coral-400 pulse-dot"></div>
+                  <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest">Generating via Vertex AI</span>
+                </div>
+                <p class="text-white font-black text-lg" x-text="currentAvatarMsg"></p>
+              </div>
+            </div>
+
+            <!-- Measurement strip while loading -->
+            <div class="p-5" x-show="Object.keys(edited).length > 0">
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Your Profile</p>
+              <div class="grid grid-cols-4 gap-2">
+                <template x-for="key in measurementKeys" :key="key">
+                  <div class="text-center bg-indigo-50 rounded-2xl py-3">
+                    <p class="text-[9px] text-slate-400 font-bold uppercase" x-text="measureMeta[key].label"></p>
+                    <p class="text-base font-black text-indigo-950 leading-none mt-1" x-text="edited[key] || '—'"></p>
+                    <p class="text-[9px] text-slate-300 mt-0.5">cm</p>
+                  </div>
+                </template>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Confirmed measurement strip -->
-        <div class="p-5" x-show="result">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Confirmed Profile</p>
-          <div class="grid grid-cols-4 gap-2">
-            <template x-for="key in measurementKeys" :key="key">
-              <div class="text-center bg-indigo-50 rounded-2xl py-3">
-                <p class="text-[9px] text-slate-400 font-bold uppercase" x-text="measureMeta[key].label"></p>
-                <p class="text-base font-black text-indigo-950 leading-none mt-1" x-text="(edited && edited[key]) || '—'"></p>
-                <p class="text-[9px] text-slate-300 mt-0.5">cm</p>
-              </div>
-            </template>
+          <!--
+            FIX: Avatar generation can take 15–45s on Vertex AI. There was no way
+            for the user to abort and try a different photo. This button cancels
+            the in-flight request via AbortController and goes back to Step 4.
+          -->
+          <button @click="cancelAvatarAndGoBack()"
+            class="w-full py-3 text-slate-400 text-xs font-bold hover:text-slate-600 transition text-center">
+            ← Cancel and retake photo
+          </button>
+        </div>
+      </template>
+
+      <!-- ── Error ── -->
+      <template x-if="!avatarLoading && avatarError">
+        <div>
+          <div class="mb-5">
+            <h1 class="text-2xl font-black text-indigo-950 mb-1 tracking-tight">Avatar generation failed</h1>
+            <p class="text-slate-500 text-sm font-light">Don't worry — your measurements are saved.</p>
           </div>
-        </div>
-      </div>
 
-      <!-- Size Recommender teaser -->
-      <div class="bg-white rounded-3xl border-2 border-dashed border-slate-200 p-5 mb-4">
-        <div class="flex items-start gap-4">
-          <div class="w-11 h-11 bg-indigo-50 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl">🎯</div>
-          <div>
-            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-coral-50 border border-coral-200 mb-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-coral-400 pulse-dot"></span>
-              <span class="text-[10px] font-bold text-coral-500 uppercase tracking-widest">Coming Next</span>
+          <div class="bg-red-50 border border-red-200 rounded-3xl p-6 mb-4 flex items-start gap-4">
+            <span class="text-3xl flex-shrink-0">⚠️</span>
+            <div>
+              <p class="font-bold text-red-700 mb-1 text-sm" x-text="avatarErrorCode"></p>
+              <p class="text-red-600 text-sm" x-text="avatarError"></p>
             </div>
-            <h3 class="font-black text-indigo-950 mb-1 text-sm">AI Size Recommender</h3>
-            <p class="text-xs text-slate-500 leading-relaxed">
-              Aina matches your measurements to the brand's specific size chart and tells you exactly what to order — with a fit preference (snug / regular / relaxed).
-            </p>
           </div>
-        </div>
-      </div>
 
-      <!-- What's next checklist -->
-      <div class="bg-indigo-50 rounded-3xl p-5 mb-5">
-        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3">Your journey</p>
-        <div class="space-y-3">
-          <template x-for="item in nextStepsList">
-            <div class="flex items-start gap-3">
-              <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-black mt-0.5"
-                :class="item.done ? 'bg-green-500 text-white' : 'bg-white border-2 border-slate-200 text-slate-400'">
-                <span x-text="item.done ? '✓' : ''"></span>
+          <!-- Saved measurements even on failure -->
+          <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 mb-4" x-show="result">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Saved Measurements</p>
+            <div class="grid grid-cols-4 gap-2">
+              <template x-for="key in measurementKeys" :key="key">
+                <div class="text-center bg-indigo-50 rounded-2xl py-3">
+                  <p class="text-[9px] text-slate-400 font-bold uppercase" x-text="measureMeta[key].label"></p>
+                  <p class="text-base font-black text-indigo-950 leading-none mt-1" x-text="edited[key] || '—'"></p>
+                  <p class="text-[9px] text-slate-300 mt-0.5">cm</p>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <button @click="triggerAvatarGeneration()"
+            class="w-full py-4 rounded-2xl font-bold text-sm bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800 transition mb-3 flex items-center justify-center gap-2">
+            🔄 Try Again
+          </button>
+          <button @click="retakePhoto()"
+            class="w-full py-3 text-slate-400 text-xs font-bold hover:text-slate-600 transition text-center">
+            ← Retake photo
+          </button>
+        </div>
+      </template>
+
+      <!-- ── Ready ── -->
+      <template x-if="!avatarLoading && !avatarError && avatarUrl">
+        <div>
+          <div class="mb-5">
+            <div class="flex items-center gap-2 mb-1">
+              <h1 class="text-2xl font-black text-indigo-950 tracking-tight">Your digital twin</h1>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700">✓ Ready</span>
+            </div>
+            <p class="text-slate-500 text-sm font-light">Here's your personalised AI avatar.</p>
+          </div>
+
+          <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-4">
+            <div class="bg-gradient-to-br from-indigo-950 to-indigo-800 px-6 py-8 relative overflow-hidden">
+              <div class="absolute inset-0 opacity-10"
+                style="background-image:linear-gradient(rgba(99,102,241,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.5) 1px,transparent 1px);background-size:28px 28px"></div>
+
+              <!-- Provider badge -->
+              <div class="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20">
+                <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest"
+                  x-text="`via ${avatarProvider || 'vertex'}`"></span>
               </div>
+
+              <div class="flex justify-center">
+                <!--
+                  FIX: @error previously nulled avatarUrl and showed the generic fallback.
+                  Now it shows an inline expired-URL error with a "Refresh" button that
+                  re-calls POST /session/avatar (idempotent — returns a fresh signed URL).
+                -->
+                <img :src="avatarUrl"
+                  class="avatar-reveal h-72 w-auto object-contain rounded-2xl shadow-2xl border-2 border-white/20"
+                  alt="Your AI avatar"
+                  @error="handleAvatarImgError()" />
+              </div>
+            </div>
+
+            <!-- Measurements -->
+            <div class="p-5">
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Confirmed Profile</p>
+              <div class="grid grid-cols-4 gap-2">
+                <template x-for="key in measurementKeys" :key="key">
+                  <div class="text-center bg-indigo-50 rounded-2xl py-3">
+                    <p class="text-[9px] text-slate-400 font-bold uppercase" x-text="measureMeta[key].label"></p>
+                    <p class="text-base font-black text-indigo-950 leading-none mt-1" x-text="edited[key] || '—'"></p>
+                    <p class="text-[9px] text-slate-300 mt-0.5">cm</p>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expired URL inline notice (replaces generic fallback) -->
+          <div x-show="avatarImgError" x-transition
+            class="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-sm text-amber-700">
+              <span>⏱️</span>
+              <span>Preview link expired.</span>
+            </div>
+            <button @click="refreshAvatarUrl()"
+              class="text-xs font-bold text-indigo-700 hover:text-indigo-900 transition px-3 py-1.5 rounded-xl border border-indigo-200 hover:border-indigo-400">
+              Refresh →
+            </button>
+          </div>
+
+          <!-- Size Recommender teaser -->
+          <div class="bg-white rounded-3xl border-2 border-dashed border-slate-200 p-5 mb-4">
+            <div class="flex items-start gap-4">
+              <div class="w-11 h-11 bg-indigo-50 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl">🎯</div>
               <div>
-                <p class="text-sm font-semibold leading-tight" :class="item.done ? 'text-slate-700' : 'text-slate-400'" x-text="item.label"></p>
-                <p x-show="item.sub" class="text-xs text-slate-400 mt-0.5" x-text="item.sub"></p>
+                <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-coral-50 border border-coral-200 mb-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-coral-400 pulse-dot"></span>
+                  <span class="text-[10px] font-bold text-coral-500 uppercase tracking-widest">Coming Next</span>
+                </div>
+                <h3 class="font-black text-indigo-950 mb-1 text-sm">AI Size Recommender</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                  Aina matches your measurements to the brand's specific size chart and tells you exactly what to order — with a fit preference (snug / regular / relaxed).
+                </p>
               </div>
             </div>
-          </template>
-        </div>
-      </div>
+          </div>
 
-      <button @click="goToStep(1); resetAll()"
-        class="w-full py-4 rounded-2xl font-bold text-sm border-2 border-slate-200 text-slate-500 hover:border-indigo-300 hover:text-indigo-900 transition">
-        ↩ Start Over
-      </button>
+          <!-- Journey checklist -->
+          <div class="bg-indigo-50 rounded-3xl p-5 mb-5">
+            <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3">Your journey</p>
+            <div class="space-y-3">
+              <template x-for="item in nextStepsList">
+                <div class="flex items-start gap-3">
+                  <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-black mt-0.5"
+                    :class="item.done ? 'bg-green-500 text-white' : 'bg-white border-2 border-slate-200 text-slate-400'">
+                    <span x-text="item.done ? '✓' : ''"></span>
+                  </div>
+                  <div>
+                    <p class="text-sm font-semibold leading-tight"
+                      :class="item.done ? 'text-slate-700' : 'text-slate-400'"
+                      x-text="item.label"></p>
+                    <p x-show="item.sub" class="text-xs text-slate-400 mt-0.5" x-text="item.sub"></p>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <button @click="startOver()"
+            class="w-full py-4 rounded-2xl font-bold text-sm border-2 border-slate-200 text-slate-500 hover:border-indigo-300 hover:text-indigo-900 transition">
+            ↩ Start Over
+          </button>
+        </div>
+      </template>
+
+      <!-- ── Fallback (should not normally be reached) ── -->
+      <template x-if="!avatarLoading && !avatarError && !avatarUrl">
+        <div class="text-center py-16">
+          <div class="text-5xl mb-4">🤔</div>
+          <p class="font-black text-indigo-950 text-lg mb-2">Something went wrong</p>
+          <p class="text-sm text-slate-500 mb-8">Please go back and try again.</p>
+          <button @click="retakePhoto()"
+            class="px-8 py-3 bg-indigo-900 text-white rounded-2xl font-bold text-sm hover:bg-indigo-800 transition">
+            ← Go Back
+          </button>
+        </div>
+      </template>
+
     </div>
 
   </div>
 
-  <p class="text-center text-[10px] text-slate-300 pb-8 uppercase tracking-widest font-semibold">Aina Internal v1 · Not for distribution</p>
+  <p class="text-center text-[10px] text-slate-300 pb-8 uppercase tracking-widest font-semibold">
+    Aina Internal v1 · Not for distribution
+  </p>
 
 <script>
 function aina() {
@@ -648,41 +862,56 @@ function aina() {
       gender:    '',
       height_cm: 170,
       weight_kg: '',
-      facePhoto: null,   // File object — uploaded to /session/face-photo
-      photo:     null,   // File object — sent directly to /session/extract
+      facePhoto: null,
+      photo:     null,
     },
 
-    photoPreview: null,  // data URL for body photo preview
-    facePreview:  null,  // data URL for face photo preview
+    photoPreview:  null,
+    facePreview:   null,
 
-    // API state
-    loading:   false,
-    result:    null,     // measurements object from /session/extract response
-    error:     null,     // user-facing error message string
-    errorCode: '',       // error_code from backend for display
+    // Request state
+    loading:        false,
+    sessionLoading: false,
+    faceUploading:  false,
+    faceUploadWarn: false,
 
-    // Step-level validation error (shown inline before API calls)
+    result:    null,
+    error:     null,
+    errorCode: '',
     stepError: '',
 
-    // Measurement editing state
+    sessionRestored: false,
+
+    // Measurement editing
     isEditing: false,
-    confirmed: false,
-    edited:    {},       // copy of result that user may have adjusted
+    confirmed:      false,
+    confirmLoading: false,   // true while PATCH /session/measurements is in-flight
+    edited:    {},
+
+    // Avatar
+    avatarLoading:   false,
+    avatarUrl:       null,
+    avatarProvider:  '',
+    avatarError:     null,
+    avatarErrorCode: '',
+    avatarImgError:  false,   // tracks expired signed URL without nuking avatarUrl
 
     // Loading message cycling
-    loadingMsgIndex: 0,
-    _loadingTimer:   null,
+    loadingMsgIndex:  0,
+    avatarMsgIndex:   0,
+    _loadingTimer:    null,
+    _avatarMsgTimer:  null,
 
-    // Debug panel toggle
+    // AbortControllers — cancel in-flight requests on navigate / retake
+    _extractAbort: null,
+    _avatarAbort:  null,
+
     showDebug: false,
+    apiBase:   '',
 
     // ─────────────────────────────────────────────────────────────
-    // CONFIG
+    // STATIC DATA
     // ─────────────────────────────────────────────────────────────
-
-    // Persisted in localStorage so it survives page reloads during dev.
-    // In production this should be baked in as a build-time constant.
-    apiBase: '',
 
     loadingMessages: [
       'Detecting body pose…',
@@ -692,12 +921,20 @@ function aina() {
       'Almost there…',
     ],
 
+    avatarMessages: [
+      'Analysing your body photo…',
+      'Generating avatar with AI…',
+      'Applying your body proportions…',
+      'Dressing your digital twin…',
+      'Finishing touches…',
+    ],
+
     measurementKeys: ['chest_cm', 'waist_cm', 'hip_cm', 'shoulder_width_cm'],
     measureMeta: {
       chest_cm:          { label: 'Chest',    icon: '📐 ' },
       waist_cm:          { label: 'Waist',    icon: '📏 ' },
       hip_cm:            { label: 'Hip',      icon: '📐 ' },
-      shoulder_width_cm: { label: 'Shoulder', icon: '↔️ '  },
+      shoulder_width_cm: { label: 'Shoulder', icon: '↔️ ' },
     },
 
     faceTips: [
@@ -732,7 +969,7 @@ function aina() {
       const h = this.form.height_cm / 100;
       return (this.form.weight_kg / (h * h)).toFixed(1);
     },
-    get bmiLabel() { return this.bmiLabelFrom(this.bmi); },
+    get bmiLabel()  { return this.bmiLabelFrom(this.bmi); },
     get bmiStyle()  { return this.bmiStyleFrom(this.bmi); },
     get canSubmit() {
       return this.form.gender && this.form.height_cm > 100 && this.form.weight_kg > 30 && this.form.photo;
@@ -740,13 +977,27 @@ function aina() {
     get currentLoadingMsg() {
       return this.loadingMessages[this.loadingMsgIndex % this.loadingMessages.length];
     },
+    get currentAvatarMsg() {
+      return this.avatarMessages[this.avatarMsgIndex % this.avatarMessages.length];
+    },
+    get hasAnyEdit() {
+      if (!this.result) return false;
+      return this.measurementKeys.some(k => this.edited[k] !== this.result[k]);
+    },
     get nextStepsList() {
       return [
-        { label: 'Gender & body stats collected',  sub: null, done: true },
-        { label: 'Measurements extracted by AI',   sub: `Chest ${this.edited.chest_cm || '—'} · Waist ${this.edited.waist_cm || '—'} cm`, done: !!this.result },
-        { label: 'AI avatar generation',           sub: 'Rendering your 3D digital twin',            done: false },
-        { label: 'Brand size match',               sub: 'Matched against specific brand size chart', done: false },
-        { label: 'Virtual garment try-on',         sub: null,                                         done: false },
+        { label: 'Gender & body stats collected',
+          sub: null, done: true },
+        { label: 'Measurements extracted by AI',
+          sub: `Chest ${this.edited.chest_cm || '—'} · Waist ${this.edited.waist_cm || '—'} cm`,
+          done: !!this.result },
+        { label: 'AI avatar generated',
+          sub: this.avatarProvider ? `via ${this.avatarProvider}` : null,
+          done: !!this.avatarUrl },
+        { label: 'Brand size match',
+          sub: 'Matched against specific brand size chart', done: false },
+        { label: 'Virtual garment try-on',
+          sub: null, done: false },
       ];
     },
 
@@ -754,13 +1005,104 @@ function aina() {
     // LIFECYCLE
     // ─────────────────────────────────────────────────────────────
 
-    init() {
-      // Restore persisted backend URL across page reloads
+    async init() {
       this.apiBase = localStorage.getItem('aina_api_base') || '';
+      if (this.apiBase) {
+        await this._tryRestoreSession();
+      }
+
+      /*
+        FIX: confirmed → navigate + avatar trigger used to be a setTimeout(400) hack.
+        Using Alpine's x-effect (watch) instead: when confirmed flips to true,
+        navigate immediately and fire triggerAvatarGeneration(). No timer involved.
+        x-effect runs inside the Alpine context, so 'this' is the component correctly.
+      */
+      this.$watch('confirmed', async (val) => {
+        if (val) {
+          // Brief CSS transition plays on the button (class swap is instant),
+          // then we navigate. 300ms matches the CSS transition-all duration-300.
+          await new Promise(r => setTimeout(r, 300));
+          this.goToStep(6);
+          await this.triggerAvatarGeneration();
+        }
+      });
     },
 
     // ─────────────────────────────────────────────────────────────
-    // CONFIG HELPERS
+    // SESSION RESTORE
+    // ─────────────────────────────────────────────────────────────
+
+    async _tryRestoreSession() {
+      try {
+        const res = await this._fetch('/session');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (data.gender)    this.form.gender    = data.gender;
+        if (data.height_cm) this.form.height_cm = data.height_cm;
+        if (data.weight_kg) this.form.weight_kg = data.weight_kg;
+
+        if (data.measurements && data.status === 'completed') {
+          this.result = data.measurements;
+          this.edited = { ...data.measurements };
+        }
+
+        // Determine where to resume and show the pill
+        let targetStep = null;
+
+        if (data.avatar_status === 'ready' && data.has_avatar) {
+          // Avatar done — call POST /session/avatar (idempotent) to get a fresh signed URL
+          this.confirmed = false; // don't re-trigger the watcher
+          targetStep = 6;
+          this.sessionRestored = true;
+          this.goToStep(6);
+          // Call directly (not via confirmed watcher) since we're restoring, not confirming
+          await this.triggerAvatarGeneration();
+          this._scheduleHidePill();
+          return;
+        }
+
+        if (data.avatar_status === 'generating') {
+          // Server was mid-generation when browser refreshed.
+          // Re-call the endpoint — backend guards against true concurrent generation.
+          // If the previous generation finished on the server it returns the result.
+          // If still in progress the backend will return 409 which triggerAvatarGeneration handles.
+          targetStep = 6;
+          this.confirmed = false;
+        } else if (data.status === 'completed' && data.measurements) {
+          targetStep = 5;
+        } else if (data.status === 'images_uploaded' || data.has_body_photo) {
+          targetStep = 4;
+        } else if (data.has_face_photo) {
+          targetStep = 4;
+        } else if (data.gender && data.height_cm && data.weight_kg) {
+          targetStep = 3;
+        }
+
+        if (targetStep) {
+          this.sessionRestored = true;
+          this.goToStep(targetStep);
+
+          // For generating state — fire avatar call after navigating
+          if (data.avatar_status === 'generating') {
+            await this.triggerAvatarGeneration();
+          }
+
+          this._scheduleHidePill();
+        }
+
+      } catch (_) {
+        // Network failure or no session cookie — start fresh silently
+      }
+    },
+
+    // FIX: pill auto-hide now lives in one place, called from all branches
+    _scheduleHidePill() {
+      setTimeout(() => { this.sessionRestored = false; }, 4000);
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // CONFIG
     // ─────────────────────────────────────────────────────────────
 
     setApiBase(val) {
@@ -778,11 +1120,9 @@ function aina() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
 
-    // nextStep handles validation AND fires API calls at the right moments
     async nextStep() {
       this.stepError = '';
 
-      // ── Step 1 → 2: just validate gender, no API call yet ──────
       if (this.step === 1) {
         if (!this.form.gender) {
           this.stepError = 'Please select your gender to continue.';
@@ -792,7 +1132,6 @@ function aina() {
         return;
       }
 
-      // ── Step 2 → 3: validate height/weight then POST /session ──
       if (this.step === 2) {
         if (!this.form.height_cm || this.form.height_cm <= 100) {
           this.stepError = 'Please enter a valid height (greater than 100 cm).';
@@ -803,28 +1142,60 @@ function aina() {
           return;
         }
         const ok = await this._createSession();
-        if (!ok) return;   // stepError already set inside _createSession
+        if (!ok) return;
         this.goToStep(3);
         return;
       }
 
-      // ── Step 3 → 4: upload face photo if provided, then navigate
       if (this.step === 3) {
-        if (this.form.facePhoto) {
+        if (this.form.facePhoto && !this.faceUploadWarn) {
           const ok = await this._uploadFacePhoto();
-          if (!ok) return;
+          if (!ok) this.faceUploadWarn = true;
+          // non-fatal — always navigate regardless
         }
         this.goToStep(4);
         return;
       }
 
-      // Steps 4+ use submitAndNext or explicit goToStep calls
       this.goToStep(this.step + 1);
     },
 
     prevStep() {
       this.stepError = '';
       this.goToStep(this.step - 1);
+    },
+
+    // Shared "go back to Step 4 and clear extract state" used by retake buttons
+    retakePhoto() {
+      // Cancel any in-flight extract request
+      if (this._extractAbort) {
+        this._extractAbort.abort();
+        this._extractAbort = null;
+      }
+      this.result    = null;
+      this.confirmed     = false;
+      this.confirmLoading = false;
+      this.isEditing      = false;
+      this.edited    = {};
+      this.error     = null;
+      this.errorCode = '';
+      this._stopLoadingCycle();
+      this.loading   = false;
+      this.goToStep(4);
+    },
+
+    // Cancel avatar generation and go back
+    cancelAvatarAndGoBack() {
+      if (this._avatarAbort) {
+        this._avatarAbort.abort();
+        this._avatarAbort = null;
+      }
+      this.avatarLoading   = false;
+      this.avatarError     = null;
+      this.avatarErrorCode = '';
+      this._stopAvatarMsgCycle();
+      this.confirmed = false; // so watcher doesn't re-fire on next confirm
+      this.retakePhoto();
     },
 
     // ─────────────────────────────────────────────────────────────
@@ -841,6 +1212,7 @@ function aina() {
     },
     setFacePhoto(file) {
       this.form.facePhoto = file;
+      this.faceUploadWarn = false;
       const r = new FileReader();
       r.onload = e => { this.facePreview = e.target.result; };
       r.readAsDataURL(file);
@@ -865,36 +1237,45 @@ function aina() {
     },
 
     // ─────────────────────────────────────────────────────────────
-    // MEASUREMENT EDITING
+    // MEASUREMENTS
     // ─────────────────────────────────────────────────────────────
 
     updateMeasure(key, val) {
       this.edited = { ...this.edited, [key]: parseFloat(val) };
     },
     isEdited(key) {
-      return this.result && this.edited[key] !== undefined &&
+      return this.result &&
+        this.edited[key] !== undefined &&
         this.edited[key] !== this.result[key];
     },
 
     // ─────────────────────────────────────────────────────────────
-    // SUBMIT (Step 4 → 5)
+    // SUBMIT — Step 4 → 5
     // ─────────────────────────────────────────────────────────────
 
     async submitAndNext() {
       if (!this.canSubmit || this.loading) return;
 
+      // Cancel any previous in-flight extract
+      if (this._extractAbort) this._extractAbort.abort();
+      this._extractAbort = new AbortController();
+
       this.loading   = true;
       this.error     = null;
       this.errorCode = '';
       this.result    = null;
-      this.goToStep(5);          // navigate immediately so loader is visible
-      this._startLoadingCycle(); // start cycling loading messages
+      this.goToStep(5);
+      this._startLoadingCycle();
 
       const fd = new FormData();
       fd.append('file', this.form.photo);
 
       try {
-        const res = await this._fetch('/session/extract', { method: 'POST', body: fd });
+        const res  = await this._fetch('/session/extract', {
+          method: 'POST',
+          body:   fd,
+          signal: this._extractAbort.signal,
+        });
         const data = await res.json();
 
         if (!res.ok) {
@@ -904,54 +1285,187 @@ function aina() {
           this.edited = { ...data.measurements };
         }
       } catch (err) {
+        if (err.name === 'AbortError') return; // user cancelled — don't update state
         this.errorCode = 'CONNECTION_ERROR';
         this.error = 'Could not reach the backend. Check the API URL in the top-right menu.';
       } finally {
         this.loading = false;
         this._stopLoadingCycle();
+        this._extractAbort = null;
       }
     },
 
-    confirmMeasurements() {
-      this.confirmed = true;
-      this.isEditing = false;
-      setTimeout(() => this.goToStep(6), 600);
+    // ─────────────────────────────────────────────────────────────
+    // CONFIRM
+    // Navigation + avatar trigger happen in the $watch('confirmed') watcher
+    // in init(). This function only flips the flag.
+    // ─────────────────────────────────────────────────────────────
+
+    async confirmMeasurements() {
+      if (this.isEditing || this.confirmed || this.confirmLoading) return;
+      if (!this._checkApiBase()) return;
+
+      // Disable the button immediately to prevent double-taps firing two requests.
+      // We use confirmLoading rather than flipping `confirmed` early, because the
+      // $watch on `confirmed` triggers avatar generation — it must only fire after
+      // the measurements are successfully persisted to the DB.
+      this.confirmLoading = true;
+      this.stepError = '';
+
+      try {
+        const res = await this._fetch('/session/measurements', {
+          method:  'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chest_cm:          this.edited.chest_cm,
+            waist_cm:          this.edited.waist_cm,
+            hip_cm:            this.edited.hip_cm,
+            shoulder_width_cm: this.edited.shoulder_width_cm,
+          }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          const detail = data.detail || {};
+          this.stepError = (typeof detail === 'object' ? detail.message : String(detail))
+            || 'Failed to save measurements. Please try again.';
+          return;
+        }
+
+        // Save succeeded — flip confirmed. The $watch fires from here.
+        this.confirmed = true;
+
+      } catch (err) {
+        this.stepError = 'Could not reach the backend. Check the API URL in the top-right menu.';
+      } finally {
+        this.confirmLoading = false;
+      }
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // AVATAR — POST /session/avatar
+    // ─────────────────────────────────────────────────────────────
+
+    async triggerAvatarGeneration() {
+      if (!this._checkApiBase()) return;
+
+      // Cancel any previous in-flight avatar request
+      if (this._avatarAbort) this._avatarAbort.abort();
+      this._avatarAbort = new AbortController();
+
+      this.avatarLoading   = true;
+      this.avatarError     = null;
+      this.avatarErrorCode = '';
+      this.avatarImgError  = false;
+      this._startAvatarMsgCycle();
+
+      /*
+        Vertex AI takes 15–45s. We give it 90s before treating it as a timeout
+        on the client side. The AbortController signal is passed to fetch so the
+        browser actually cancels the TCP connection, not just ignores the response.
+      */
+      const timeoutId = setTimeout(() => {
+        if (this._avatarAbort) this._avatarAbort.abort('timeout');
+      }, 90_000);
+
+      try {
+        const res  = await this._fetch('/session/avatar', {
+          method: 'POST',
+          signal: this._avatarAbort.signal,
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          const detail         = data.detail || {};
+          this.avatarErrorCode = typeof detail === 'object' ? (detail.error_code || 'AVATAR_FAILED') : 'AVATAR_FAILED';
+          this.avatarError     = typeof detail === 'object' ? (detail.message    || 'Avatar generation failed. Please try again.') : String(detail);
+        } else {
+          this.avatarUrl      = data.avatar_url;
+          // FIX: default was hardcoded 'gemini' — backend now returns 'vertex'
+          this.avatarProvider = data.provider || 'vertex';
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          // Could be user-cancelled (cancelAvatarAndGoBack) or our 90s timeout
+          if (!this.avatarError) {
+            this.avatarErrorCode = 'AVATAR_TIMEOUT';
+            this.avatarError     = 'Avatar generation timed out. Please try again.';
+          }
+          return;
+        }
+        this.avatarErrorCode = 'CONNECTION_ERROR';
+        this.avatarError     = 'Could not reach the backend. Check the API URL in the top-right menu.';
+      } finally {
+        clearTimeout(timeoutId);
+        this.avatarLoading = false;
+        this._stopAvatarMsgCycle();
+        this._avatarAbort  = null;
+      }
+    },
+
+    /*
+      FIX: Previously set avatarUrl = null on img error, which triggered the
+      generic "Something went wrong" fallback with a "Go Back" button.
+      The actual problem is a Supabase signed URL expiring after 3600s —
+      the avatar still exists in storage. The right fix is to call
+      POST /session/avatar again (idempotent — returns a fresh signed URL).
+    */
+    handleAvatarImgError() {
+      this.avatarImgError = true;
+    },
+
+    async refreshAvatarUrl() {
+      this.avatarImgError = false;
+      this.avatarUrl      = null; // briefly show loading skeleton
+      await this.triggerAvatarGeneration();
     },
 
     // ─────────────────────────────────────────────────────────────
     // RESET
     // ─────────────────────────────────────────────────────────────
 
-    async resetAll() {
-      // Tell the backend to clear the session cookie
-      try {
-        await this._fetch('/session/reset', { method: 'POST' });
-      } catch (_) {
-        // Non-fatal — local state is cleared regardless
-      }
+    async startOver() {
+      // Cancel any in-flight requests
+      if (this._extractAbort) { this._extractAbort.abort(); this._extractAbort = null; }
+      if (this._avatarAbort)  { this._avatarAbort.abort();  this._avatarAbort  = null; }
 
-      this.form         = { gender: '', height_cm: 170, weight_kg: '', facePhoto: null, photo: null };
-      this.photoPreview = null;
-      this.facePreview  = null;
-      this.result       = null;
-      this.edited       = {};
-      this.error        = null;
-      this.errorCode    = '';
-      this.stepError    = '';
-      this.loading      = false;
-      this.confirmed    = false;
-      this.isEditing    = false;
-      this.showDebug    = false;
+      try { await this._fetch('/session/reset', { method: 'POST' }); } catch (_) {}
+
+      this.form            = { gender: '', height_cm: 170, weight_kg: '', facePhoto: null, photo: null };
+      this.photoPreview    = null;
+      this.facePreview     = null;
+      this.result          = null;
+      this.edited          = {};
+      this.error           = null;
+      this.errorCode       = '';
+      this.stepError       = '';
+      this.loading         = false;
+      this.sessionLoading  = false;
+      this.faceUploading   = false;
+      this.faceUploadWarn  = false;
+      this.confirmed       = false;
+      this.confirmLoading  = false;
+      this.isEditing       = false;
+      this.showDebug       = false;
+      this.sessionRestored = false;
+      this.avatarLoading   = false;
+      this.avatarUrl       = null;
+      this.avatarProvider  = '';
+      this.avatarError     = null;
+      this.avatarErrorCode = '';
+      this.avatarImgError  = false;
       this._stopLoadingCycle();
+      this._stopAvatarMsgCycle();
+      this.goToStep(1);
     },
 
     // ─────────────────────────────────────────────────────────────
-    // PRIVATE — API CALLS
+    // API HELPERS
     // ─────────────────────────────────────────────────────────────
 
-    // POST /session — called once at end of Step 2
     async _createSession() {
       if (!this._checkApiBase()) return false;
+      this.sessionLoading = true;
       try {
         const res = await this._fetch('/session', {
           method:  'POST',
@@ -963,50 +1477,34 @@ function aina() {
           }),
         });
         const data = await res.json();
-        if (!res.ok) {
-          this._handleStepError(data);
-          return false;
-        }
+        if (!res.ok) { this._handleStepError(data); return false; }
         return true;
       } catch (err) {
         this.stepError = 'Could not connect to the backend. Check the API URL.';
         return false;
+      } finally {
+        this.sessionLoading = false;
       }
     },
 
-    // POST /session/face-photo — called at end of Step 3 if photo provided
     async _uploadFacePhoto() {
       if (!this._checkApiBase()) return false;
+      this.faceUploading = true;
       try {
         const fd = new FormData();
         fd.append('file', this.form.facePhoto);
         const res = await this._fetch('/session/face-photo', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (!res.ok) {
-          this._handleStepError(data);
-          return false;
-        }
-        return true;
-      } catch (err) {
-        // Face photo upload failure is non-fatal — we warn but let the user proceed
-        this.stepError = 'Face photo upload failed. You can continue without it.';
+        return res.ok;
+      } catch (_) {
         return false;
+      } finally {
+        this.faceUploading = false;
       }
     },
 
-    // ─────────────────────────────────────────────────────────────
-    // PRIVATE — FETCH WRAPPER
-    // ─────────────────────────────────────────────────────────────
-
-    // Central fetch wrapper — always includes:
-    //   credentials: 'include'  → sends the session cookie on every request
-    //   base URL prepended      → no URL strings scattered across the component
     _fetch(path, options = {}) {
       if (!this.apiBase) throw new Error('No API base URL configured.');
-      return fetch(this.apiBase + path, {
-        ...options,
-        credentials: 'include',   // required for HttpOnly session cookie
-      });
+      return fetch(this.apiBase + path, { ...options, credentials: 'include' });
     },
 
     _checkApiBase() {
@@ -1017,48 +1515,50 @@ function aina() {
       return true;
     },
 
-    // Parse a non-ok API response into user-facing error + errorCode
     _handleApiError(data) {
-      const detail = data.detail;
-      if (detail && typeof detail === 'object') {
-        this.errorCode = detail.error_code || 'ERROR';
-        this.error     = detail.message    || 'Something went wrong. Please try again.';
+      const d = data.detail;
+      if (d && typeof d === 'object') {
+        this.errorCode = d.error_code || 'ERROR';
+        this.error     = d.message    || 'Something went wrong. Please try again.';
       } else {
         this.errorCode = 'ERROR';
-        this.error     = typeof detail === 'string' ? detail : 'Something went wrong. Please try again.';
+        this.error     = typeof d === 'string' ? d : 'Something went wrong. Please try again.';
       }
     },
 
-    // Same but writes to stepError (shown inline on step, not on Step 5 results)
     _handleStepError(data) {
-      const detail = data.detail;
-      if (detail && typeof detail === 'object') {
-        this.stepError = detail.message || 'Something went wrong. Please try again.';
+      const d = data.detail;
+      if (d && typeof d === 'object') {
+        this.stepError = d.message || 'Something went wrong. Please try again.';
       } else {
-        this.stepError = typeof detail === 'string' ? detail : 'Something went wrong. Please try again.';
+        this.stepError = typeof d === 'string' ? d : 'Something went wrong. Please try again.';
       }
     },
 
     // ─────────────────────────────────────────────────────────────
-    // PRIVATE — LOADING MESSAGE CYCLING
+    // LOADING MESSAGE CYCLING
     // ─────────────────────────────────────────────────────────────
 
     _startLoadingCycle() {
       this.loadingMsgIndex = 0;
       this._loadingTimer = setInterval(() => {
-        // Stop cycling once we've shown the last message — avoids looping back
-        if (this.loadingMsgIndex < this.loadingMessages.length - 1) {
-          this.loadingMsgIndex++;
-        }
+        if (this.loadingMsgIndex < this.loadingMessages.length - 1) this.loadingMsgIndex++;
       }, 3000);
     },
-
     _stopLoadingCycle() {
-      if (this._loadingTimer) {
-        clearInterval(this._loadingTimer);
-        this._loadingTimer = null;
-      }
+      if (this._loadingTimer) { clearInterval(this._loadingTimer); this._loadingTimer = null; }
       this.loadingMsgIndex = 0;
+    },
+
+    _startAvatarMsgCycle() {
+      this.avatarMsgIndex = 0;
+      this._avatarMsgTimer = setInterval(() => {
+        if (this.avatarMsgIndex < this.avatarMessages.length - 1) this.avatarMsgIndex++;
+      }, 6000); // slower — avatar takes 15–45s, don't exhaust messages too fast
+    },
+    _stopAvatarMsgCycle() {
+      if (this._avatarMsgTimer) { clearInterval(this._avatarMsgTimer); this._avatarMsgTimer = null; }
+      this.avatarMsgIndex = 0;
     },
 
     // ─────────────────────────────────────────────────────────────

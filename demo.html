@@ -94,50 +94,12 @@
           onerror="this.style.display='none'">
       </a>
 
-      <div class="flex items-center gap-3">
-        <!-- Session restored pill — hidden once acknowledged -->
-        <div x-show="sessionRestored" x-transition
-          class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 border border-green-200 text-[10px] font-bold text-green-600 cursor-pointer"
-          @click="sessionRestored = false">
-          <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div>
-          Session restored ✕
-        </div>
-
-        <!-- API URL configurator -->
-        <div class="relative" x-data="{ open: false }">
-          <button @click="open = !open"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-indigo-300 transition text-xs font-bold"
-            :class="apiBase ? 'text-green-600 border-green-300' : 'text-slate-400'">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            API
-          </button>
-
-          <div x-show="open" x-cloak @click.away="open = false"
-            x-transition:enter="transition ease-out duration-150"
-            x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
-            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-            class="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 z-50">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Aina Backend URL</p>
-            <p class="text-[10px] text-slate-300 mb-3">Main backend URL (port 8000). Persisted in localStorage.</p>
-            <div class="flex gap-2">
-              <input type="url" :value="apiBase" @change="setApiBase($event.target.value)"
-                placeholder="https://xxxx.ngrok-free.app"
-                class="flex-1 border-2 border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-700 focus:outline-none focus:border-indigo-400 transition min-w-0" />
-              <button @click="open = false"
-                class="px-3 py-2 bg-indigo-900 text-white rounded-xl text-xs font-bold hover:bg-indigo-800 transition flex-shrink-0">
-                Save
-              </button>
-            </div>
-            <div class="mt-3 flex items-center gap-2">
-              <div class="w-2 h-2 rounded-full flex-shrink-0" :class="apiBase ? 'bg-green-400' : 'bg-red-400'"></div>
-              <p class="text-[10px] font-mono text-slate-400 truncate" x-text="apiBase || 'No URL set'"></p>
-            </div>
-          </div>
-        </div>
+      <!-- Session restored pill — hidden once acknowledged -->
+      <div x-show="sessionRestored" x-transition
+        class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 border border-green-200 text-[10px] font-bold text-green-600 cursor-pointer"
+        @click="sessionRestored = false">
+        <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+        Session restored ✕
       </div>
     </div>
   </nav>
@@ -217,34 +179,116 @@
         <p class="text-slate-500 text-sm font-light">Helps our AI establish your baseline body profile.</p>
       </div>
 
-      <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-4 space-y-5">
+      <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-4 space-y-6">
+
+        <!-- ── HEIGHT ── -->
         <div>
           <div class="flex items-center justify-between mb-3">
             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Height</label>
-            <div class="flex items-baseline gap-1">
-              <span class="text-2xl font-black text-indigo-950" x-text="form.height_cm || '—'"></span>
-              <span class="text-xs text-slate-400 font-medium">cm</span>
+            <!-- Unit toggle -->
+            <div class="flex items-center gap-2">
+              <div class="flex rounded-xl overflow-hidden border border-slate-200 text-[11px] font-bold">
+                <button
+                  @click="heightUnit = 'cm'"
+                  class="px-3 py-1.5 transition-all duration-150"
+                  :class="heightUnit === 'cm' ? 'bg-indigo-900 text-white' : 'bg-white text-slate-400 hover:bg-slate-50'">
+                  cm
+                </button>
+                <button
+                  @click="heightUnit = 'ftin'"
+                  class="px-3 py-1.5 transition-all duration-150"
+                  :class="heightUnit === 'ftin' ? 'bg-indigo-900 text-white' : 'bg-white text-slate-400 hover:bg-slate-50'">
+                  ft in
+                </button>
+              </div>
+              <!-- Live display -->
+              <div class="flex items-baseline gap-1 min-w-[72px] justify-end">
+                <template x-if="heightUnit === 'cm'">
+                  <span>
+                    <span class="text-2xl font-black text-indigo-950" x-text="form.height_cm || '—'"></span>
+                    <span class="text-xs text-slate-400 font-medium ml-0.5">cm</span>
+                  </span>
+                </template>
+                <template x-if="heightUnit === 'ftin'">
+                  <span>
+                    <span class="text-2xl font-black text-indigo-950" x-text="cmToFt(form.height_cm)"></span>
+                    <span class="text-xs text-slate-400 font-medium ml-0.5">ft</span>
+                    <span class="text-2xl font-black text-indigo-950 ml-1" x-text="cmToIn(form.height_cm)"></span>
+                    <span class="text-xs text-slate-400 font-medium ml-0.5">in</span>
+                  </span>
+                </template>
+              </div>
             </div>
           </div>
+
+          <!-- Slider — always in cm internally -->
           <input type="range" min="140" max="220" step="1" x-model.number="form.height_cm" />
           <div class="flex justify-between text-[10px] text-slate-300 font-medium mt-1">
-            <span>140 cm</span><span>220 cm</span>
+            <template x-if="heightUnit === 'cm'">
+              <span class="contents"><span>140 cm</span><span>220 cm</span></span>
+            </template>
+            <template x-if="heightUnit === 'ftin'">
+              <span class="contents"><span>4′ 7″</span><span>7′ 3″</span></span>
+            </template>
+          </div>
+
+          <!-- Edit fields — change based on selected unit -->
+          <div class="mt-4">
+            <template x-if="heightUnit === 'cm'">
+              <div>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Height (cm)</label>
+                <input type="number" x-model.number="form.height_cm" placeholder="e.g. 170" min="100" max="250"
+                  class="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-slate-800 font-semibold focus:outline-none focus:border-indigo-400 transition text-base" />
+              </div>
+            </template>
+            <template x-if="heightUnit === 'ftin'">
+              <div>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Height (ft &amp; in)</label>
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="relative">
+                    <input type="number"
+                      :value="cmToFt(form.height_cm)"
+                      @change="setHeightFromFtIn($event.target.value, cmToIn(form.height_cm))"
+                      placeholder="5" min="4" max="7"
+                      class="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-slate-800 font-semibold focus:outline-none focus:border-indigo-400 transition text-base pr-10" />
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">ft</span>
+                  </div>
+                  <div class="relative">
+                    <input type="number"
+                      :value="cmToIn(form.height_cm)"
+                      @change="setHeightFromFtIn(cmToFt(form.height_cm), $event.target.value)"
+                      placeholder="8" min="0" max="11"
+                      class="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-slate-800 font-semibold focus:outline-none focus:border-indigo-400 transition text-base pr-10" />
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">in</span>
+                  </div>
+                </div>
+                <p class="text-[10px] text-slate-300 mt-1.5">= <span class="font-bold text-indigo-400" x-text="form.height_cm"></span> cm sent to AI</p>
+              </div>
+            </template>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Height (cm)</label>
-            <input type="number" x-model.number="form.height_cm" placeholder="e.g. 170" min="100" max="250"
-              class="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-slate-800 font-semibold focus:outline-none focus:border-indigo-400 transition text-base" />
+        <!-- ── WEIGHT ── -->
+        <div class="border-t border-slate-100 pt-5">
+          <div class="flex items-center justify-between mb-3">
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Weight</label>
+            <div class="flex items-baseline gap-1">
+              <span class="text-2xl font-black text-indigo-950" x-text="form.weight_kg || '—'"></span>
+              <span class="text-xs text-slate-400 font-medium">kg</span>
+            </div>
           </div>
-          <div>
+          <input type="range" min="40" max="200" step="1" x-model.number="form.weight_kg" />
+          <div class="flex justify-between text-[10px] text-slate-300 font-medium mt-1">
+            <span>40 kg</span><span>200 kg</span>
+          </div>
+          <div class="mt-4">
             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Weight (kg)</label>
             <input type="number" x-model.number="form.weight_kg" placeholder="e.g. 70" min="30" max="300"
               class="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-slate-800 font-semibold focus:outline-none focus:border-indigo-400 transition text-base" />
           </div>
         </div>
 
+        <!-- ── BMI card ── -->
         <div x-show="form.height_cm > 100 && form.weight_kg > 0" x-transition
           class="rounded-2xl px-5 py-4 flex items-center justify-between" :style="bmiStyle">
           <div>
@@ -847,6 +891,11 @@
   </p>
 
 <script>
+// ─── Backend URL — single source of truth ───────────────────────────────────
+// Update this when your Render URL / custom domain changes.
+const API_BASE = 'https://aina-backend-p70x.onrender.com';
+// ────────────────────────────────────────────────────────────────────────────
+
 function aina() {
   return {
 
@@ -861,10 +910,16 @@ function aina() {
     form: {
       gender:    '',
       height_cm: 170,
-      weight_kg: '',
+      weight_kg: '70',
       facePhoto: null,
       photo:     null,
     },
+
+    // Height unit toggle — 'cm' | 'ftin'
+    // Internally we ALWAYS store form.height_cm in centimetres.
+    // The toggle only controls display and input mode.
+    // Conversion on API call is zero-cost because height_cm is already in cm.
+    heightUnit: 'cm',
 
     photoPreview:  null,
     facePreview:   null,
@@ -885,7 +940,7 @@ function aina() {
     // Measurement editing
     isEditing: false,
     confirmed:      false,
-    confirmLoading: false,   // true while PATCH /session/measurements is in-flight
+    confirmLoading: false,
     edited:    {},
 
     // Avatar
@@ -894,7 +949,7 @@ function aina() {
     avatarProvider:  '',
     avatarError:     null,
     avatarErrorCode: '',
-    avatarImgError:  false,   // tracks expired signed URL without nuking avatarUrl
+    avatarImgError:  false,
 
     // Loading message cycling
     loadingMsgIndex:  0,
@@ -907,7 +962,6 @@ function aina() {
     _avatarAbort:  null,
 
     showDebug: false,
-    apiBase:   '',
 
     // ─────────────────────────────────────────────────────────────
     // STATIC DATA
@@ -1006,10 +1060,7 @@ function aina() {
     // ─────────────────────────────────────────────────────────────
 
     async init() {
-      this.apiBase = localStorage.getItem('aina_api_base') || '';
-      if (this.apiBase) {
-        await this._tryRestoreSession();
-      }
+      await this._tryRestoreSession();
 
       /*
         FIX: confirmed → navigate + avatar trigger used to be a setTimeout(400) hack.
@@ -1099,15 +1150,6 @@ function aina() {
     // FIX: pill auto-hide now lives in one place, called from all branches
     _scheduleHidePill() {
       setTimeout(() => { this.sessionRestored = false; }, 4000);
-    },
-
-    // ─────────────────────────────────────────────────────────────
-    // CONFIG
-    // ─────────────────────────────────────────────────────────────
-
-    setApiBase(val) {
-      this.apiBase = val.replace(/\/$/, '');
-      localStorage.setItem('aina_api_base', this.apiBase);
     },
 
     // ─────────────────────────────────────────────────────────────
@@ -1285,9 +1327,9 @@ function aina() {
           this.edited = { ...data.measurements };
         }
       } catch (err) {
-        if (err.name === 'AbortError') return; // user cancelled — don't update state
+        if (err.name === 'AbortError') return;
         this.errorCode = 'CONNECTION_ERROR';
-        this.error = 'Could not reach the backend. Check the API URL in the top-right menu.';
+        this.error = 'Could not reach the backend. Please try again.';
       } finally {
         this.loading = false;
         this._stopLoadingCycle();
@@ -1303,12 +1345,7 @@ function aina() {
 
     async confirmMeasurements() {
       if (this.isEditing || this.confirmed || this.confirmLoading) return;
-      if (!this._checkApiBase()) return;
 
-      // Disable the button immediately to prevent double-taps firing two requests.
-      // We use confirmLoading rather than flipping `confirmed` early, because the
-      // $watch on `confirmed` triggers avatar generation — it must only fire after
-      // the measurements are successfully persisted to the DB.
       this.confirmLoading = true;
       this.stepError = '';
 
@@ -1336,7 +1373,7 @@ function aina() {
         this.confirmed = true;
 
       } catch (err) {
-        this.stepError = 'Could not reach the backend. Check the API URL in the top-right menu.';
+        this.stepError = 'Could not reach the backend. Please try again.';
       } finally {
         this.confirmLoading = false;
       }
@@ -1347,8 +1384,6 @@ function aina() {
     // ─────────────────────────────────────────────────────────────
 
     async triggerAvatarGeneration() {
-      if (!this._checkApiBase()) return;
-
       // Cancel any previous in-flight avatar request
       if (this._avatarAbort) this._avatarAbort.abort();
       this._avatarAbort = new AbortController();
@@ -1394,7 +1429,7 @@ function aina() {
           return;
         }
         this.avatarErrorCode = 'CONNECTION_ERROR';
-        this.avatarError     = 'Could not reach the backend. Check the API URL in the top-right menu.';
+        this.avatarError     = 'Could not reach the backend. Please try again.';
       } finally {
         clearTimeout(timeoutId);
         this.avatarLoading = false;
@@ -1448,6 +1483,7 @@ function aina() {
       this.isEditing       = false;
       this.showDebug       = false;
       this.sessionRestored = false;
+      this.heightUnit      = 'cm';
       this.avatarLoading   = false;
       this.avatarUrl       = null;
       this.avatarProvider  = '';
@@ -1464,7 +1500,6 @@ function aina() {
     // ─────────────────────────────────────────────────────────────
 
     async _createSession() {
-      if (!this._checkApiBase()) return false;
       this.sessionLoading = true;
       try {
         const res = await this._fetch('/session', {
@@ -1480,7 +1515,7 @@ function aina() {
         if (!res.ok) { this._handleStepError(data); return false; }
         return true;
       } catch (err) {
-        this.stepError = 'Could not connect to the backend. Check the API URL.';
+        this.stepError = 'Could not connect to the backend. Please try again.';
         return false;
       } finally {
         this.sessionLoading = false;
@@ -1488,7 +1523,6 @@ function aina() {
     },
 
     async _uploadFacePhoto() {
-      if (!this._checkApiBase()) return false;
       this.faceUploading = true;
       try {
         const fd = new FormData();
@@ -1503,16 +1537,7 @@ function aina() {
     },
 
     _fetch(path, options = {}) {
-      if (!this.apiBase) throw new Error('No API base URL configured.');
-      return fetch(this.apiBase + path, { ...options, credentials: 'include' });
-    },
-
-    _checkApiBase() {
-      if (!this.apiBase) {
-        this.stepError = 'No backend URL set. Tap the API button in the top-right corner.';
-        return false;
-      }
-      return true;
+      return fetch(API_BASE + path, { ...options, credentials: 'include' });
     },
 
     _handleApiError(data) {
@@ -1578,6 +1603,37 @@ function aina() {
       if (b < 25)   return 'background:#dcfce7;color:#16a34a';
       if (b < 30)   return 'background:#fef9c3;color:#ca8a04';
       return 'background:#fee2e2;color:#dc2626';
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // HEIGHT UNIT CONVERSION HELPERS
+    // ─────────────────────────────────────────────────────────────
+    // All conversions are pure display helpers — form.height_cm is
+    // always the authoritative value sent to the backend.
+    // Formula: 1 inch = 2.54 cm, 1 foot = 12 inches.
+
+    // Total inches from cm, rounded to nearest integer
+    _cmToTotalInches(cm) {
+      return Math.round(cm / 2.54);
+    },
+
+    // Feet part (floored, not rounded — e.g. 170cm = 66.9in = 5ft 6.9in → 5ft)
+    cmToFt(cm) {
+      return Math.floor(cm / 30.48);
+    },
+
+    // Remaining inches after subtracting full feet (0–11)
+    cmToIn(cm) {
+      const totalIn = Math.round(cm / 2.54);
+      return totalIn % 12;
+    },
+
+    // Called when the user edits the ft or in number input.
+    // Both values are passed so either field change updates form.height_cm.
+    // We clamp the result to the slider range (140–220 cm).
+    setHeightFromFtIn(ft, inches) {
+      const totalCm = Math.round((parseInt(ft) * 30.48) + (parseInt(inches || 0) * 2.54));
+      this.form.height_cm = Math.min(220, Math.max(140, totalCm));
     },
 
   };

@@ -481,9 +481,9 @@
       <div class="flex gap-3">
         <button @click="prevStep()"
           class="px-6 py-4 rounded-2xl font-bold text-sm text-slate-500 bg-white border-2 border-slate-200 hover:border-slate-300 transition">←</button>
-        <button @click="submitAndNext()" :disabled="!form.photo || loading"
+        <button @click="submitAndNext()" :disabled="!canSubmit || loading"
           class="flex-1 py-4 rounded-2xl font-bold text-sm transition-all duration-150 flex items-center justify-center gap-2"
-          :class="form.photo && !loading
+          :class="canSubmit && !loading
             ? 'bg-indigo-900 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-800'
             : 'bg-slate-100 text-slate-400 cursor-not-allowed'">
           <template x-if="!loading"><span>Analyse My Body →</span></template>
@@ -593,11 +593,9 @@
 
           <!-- Confirm button -->
           <!--
-            FIX: Previously used setTimeout(400) to allow button animation before navigating.
-            This was fragile — a 400ms timer driving navigation logic is a race condition.
-            Now: confirmed=true flips the button to its done state instantly (CSS transition),
-            and the Alpine x-effect watcher handles navigation + avatar trigger reactively
-            once confirmed becomes true. No timer involved.
+            Navigation + avatar generation are triggered directly in confirmMeasurements()
+            after the PATCH succeeds. confirmed=true is only used to flip the button
+            to its visual done state — no $watch involved.
           -->
           <button @click="confirmMeasurements()"
             :disabled="confirmed || isEditing || confirmLoading"
@@ -687,7 +685,7 @@
               <div class="text-center">
                 <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 mb-3">
                   <div class="w-1.5 h-1.5 rounded-full bg-coral-400 pulse-dot"></div>
-                  <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest">Generating via Vertex AI</span>
+                  <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest">Generating your avatar</span>
                 </div>
                 <p class="text-white font-black text-lg" x-text="currentAvatarMsg"></p>
               </div>
@@ -772,46 +770,34 @@
             <p class="text-slate-500 text-sm font-light">Here's your personalised AI avatar.</p>
           </div>
 
-          <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-4">
-            <div class="bg-gradient-to-br from-indigo-950 to-indigo-800 px-6 py-8 relative overflow-hidden">
-              <div class="absolute inset-0 opacity-10"
-                style="background-image:linear-gradient(rgba(99,102,241,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.5) 1px,transparent 1px);background-size:28px 28px"></div>
+          <!-- Avatar card — full-bleed image, no provider badge -->
+          <div class="rounded-3xl overflow-hidden shadow-xl mb-4 relative bg-indigo-950">
 
-              <!-- Provider badge -->
-              <div class="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20">
-                <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest"
-                  x-text="`via ${avatarProvider || 'vertex'}`"></span>
-              </div>
+            <!-- Full-bleed avatar image -->
+            <img :src="avatarUrl"
+              class="avatar-reveal w-full object-cover object-top"
+              style="max-height: 520px; min-height: 360px;"
+              alt="Your AI avatar"
+              @error="handleAvatarImgError()" />
 
-              <div class="flex justify-center">
-                <!--
-                  FIX: @error previously nulled avatarUrl and showed the generic fallback.
-                  Now it shows an inline expired-URL error with a "Refresh" button that
-                  re-calls POST /session/avatar (idempotent — returns a fresh signed URL).
-                -->
-                <img :src="avatarUrl"
-                  class="avatar-reveal h-72 w-auto object-contain rounded-2xl shadow-2xl border-2 border-white/20"
-                  alt="Your AI avatar"
-                  @error="handleAvatarImgError()" />
-              </div>
-            </div>
+            <!-- Gradient overlay at bottom for measurement strip -->
+            <div class="absolute bottom-0 left-0 right-0 px-5 pt-12 pb-5"
+              style="background: linear-gradient(to top, rgba(15,10,40,0.92) 60%, transparent);">
 
-            <!-- Measurements -->
-            <div class="p-5">
-              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Confirmed Profile</p>
+              <!-- Measurements row overlaid on image -->
               <div class="grid grid-cols-4 gap-2">
                 <template x-for="key in measurementKeys" :key="key">
-                  <div class="text-center bg-indigo-50 rounded-2xl py-3">
-                    <p class="text-[9px] text-slate-400 font-bold uppercase" x-text="measureMeta[key].label"></p>
-                    <p class="text-base font-black text-indigo-950 leading-none mt-1" x-text="edited[key] || '—'"></p>
-                    <p class="text-[9px] text-slate-300 mt-0.5">cm</p>
+                  <div class="text-center bg-white/10 backdrop-blur-sm rounded-2xl py-3 border border-white/10">
+                    <p class="text-[9px] text-indigo-200 font-bold uppercase tracking-wide" x-text="measureMeta[key].label"></p>
+                    <p class="text-base font-black text-white leading-none mt-1" x-text="edited[key] || '—'"></p>
+                    <p class="text-[9px] text-indigo-300 mt-0.5">cm</p>
                   </div>
                 </template>
               </div>
             </div>
           </div>
 
-          <!-- Expired URL inline notice (replaces generic fallback) -->
+          <!-- Expired URL inline notice -->
           <div x-show="avatarImgError" x-transition
             class="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 flex items-center justify-between">
             <div class="flex items-center gap-2 text-sm text-amber-700">
@@ -1061,22 +1047,6 @@ function aina() {
 
     async init() {
       await this._tryRestoreSession();
-
-      /*
-        FIX: confirmed → navigate + avatar trigger used to be a setTimeout(400) hack.
-        Using Alpine's x-effect (watch) instead: when confirmed flips to true,
-        navigate immediately and fire triggerAvatarGeneration(). No timer involved.
-        x-effect runs inside the Alpine context, so 'this' is the component correctly.
-      */
-      this.$watch('confirmed', async (val) => {
-        if (val) {
-          // Brief CSS transition plays on the button (class swap is instant),
-          // then we navigate. 300ms matches the CSS transition-all duration-300.
-          await new Promise(r => setTimeout(r, 300));
-          this.goToStep(6);
-          await this.triggerAvatarGeneration();
-        }
-      });
     },
 
     // ─────────────────────────────────────────────────────────────
@@ -1103,11 +1073,11 @@ function aina() {
 
         if (data.avatar_status === 'ready' && data.has_avatar) {
           // Avatar done — call POST /session/avatar (idempotent) to get a fresh signed URL
-          this.confirmed = false; // don't re-trigger the watcher
+          this.confirmed = false; // reset visual button state
           targetStep = 6;
           this.sessionRestored = true;
           this.goToStep(6);
-          // Call directly (not via confirmed watcher) since we're restoring, not confirming
+          // Call directly since we're restoring, not confirming
           await this.triggerAvatarGeneration();
           this._scheduleHidePill();
           return;
@@ -1115,9 +1085,9 @@ function aina() {
 
         if (data.avatar_status === 'generating') {
           // Server was mid-generation when browser refreshed.
-          // Re-call the endpoint — backend guards against true concurrent generation.
-          // If the previous generation finished on the server it returns the result.
-          // If still in progress the backend will return 409 which triggerAvatarGeneration handles.
+          // Set avatarLoading=true BEFORE navigating so step 6 renders the
+          // loading skeleton immediately — prevents the blank fallback flash.
+          this.avatarLoading = true;
           targetStep = 6;
           this.confirmed = false;
         } else if (data.status === 'completed' && data.measurements) {
@@ -1134,9 +1104,10 @@ function aina() {
           this.sessionRestored = true;
           this.goToStep(targetStep);
 
-          // For generating state — fire avatar call after navigating
+          // For generating state — fire avatar call after navigating.
+          // Not awaited: runs in background, avatarLoading is already true.
           if (data.avatar_status === 'generating') {
-            await this.triggerAvatarGeneration();
+            this.triggerAvatarGeneration();
           }
 
           this._scheduleHidePill();
@@ -1236,7 +1207,7 @@ function aina() {
       this.avatarError     = null;
       this.avatarErrorCode = '';
       this._stopAvatarMsgCycle();
-      this.confirmed = false; // so watcher doesn't re-fire on next confirm
+      this.confirmed = false; // reset visual button state
       this.retakePhoto();
     },
 
@@ -1339,8 +1310,7 @@ function aina() {
 
     // ─────────────────────────────────────────────────────────────
     // CONFIRM
-    // Navigation + avatar trigger happen in the $watch('confirmed') watcher
-    // in init(). This function only flips the flag.
+    // Calls goToStep(6) and triggerAvatarGeneration() directly after PATCH succeeds.
     // ─────────────────────────────────────────────────────────────
 
     async confirmMeasurements() {
@@ -1369,8 +1339,15 @@ function aina() {
           return;
         }
 
-        // Save succeeded — flip confirmed. The $watch fires from here.
-        this.confirmed = true;
+        // Save succeeded — update UI state, then navigate and start avatar.
+        // We do NOT use a $watch on confirmed to drive this — Alpine re-fires
+        // watchers during reactive flush cycles (e.g. when confirmLoading=false
+        // is set in finally), which caused a double triggerAvatarGeneration call
+        // and an immediate AbortError / timeout on the UI.
+        // Direct call here is the only reliable approach.
+        this.confirmed = true;   // flips button to done state (CSS transition)
+        this.goToStep(6);
+        this.triggerAvatarGeneration();
 
       } catch (err) {
         this.stepError = 'Could not reach the backend. Please try again.';
@@ -1383,10 +1360,16 @@ function aina() {
     // AVATAR — POST /session/avatar
     // ─────────────────────────────────────────────────────────────
 
-    async triggerAvatarGeneration() {
-      // Cancel any previous in-flight avatar request
+    triggerAvatarGeneration() {
+      // Cancel any previous in-flight request
       if (this._avatarAbort) this._avatarAbort.abort();
-      this._avatarAbort = new AbortController();
+
+      // Capture in a local const BEFORE storing on this. _runAvatarLifecycle
+      // holds this local reference — if a concurrent call replaces this._avatarAbort,
+      // the already-running lifecycle still holds its own copy and the abort
+      // guard (abortCtrl.signal.aborted) works correctly.
+      const ctrl = new AbortController();
+      this._avatarAbort = ctrl;
 
       this.avatarLoading   = true;
       this.avatarError     = null;
@@ -1394,34 +1377,65 @@ function aina() {
       this.avatarImgError  = false;
       this._startAvatarMsgCycle();
 
-      /*
-        Vertex AI takes 15–45s. We give it 90s before treating it as a timeout
-        on the client side. The AbortController signal is passed to fetch so the
-        browser actually cancels the TCP connection, not just ignores the response.
-      */
-      const timeoutId = setTimeout(() => {
-        if (this._avatarAbort) this._avatarAbort.abort('timeout');
-      }, 90_000);
+      // Fire without awaiting — returns immediately with loading skeleton showing.
+      // _runAvatarLifecycle owns all state transitions and clears loading when done.
+      this._runAvatarLifecycle(ctrl);
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    // INTERNAL — avatar fetch + polling lifecycle
+    //
+    // Separated from triggerAvatarGeneration so the finally block only
+    // covers the single POST /session/avatar fetch, NOT the poll loop.
+    // Previously, awaiting _pollUntilAvatarSettles inside the try caused
+    // finally to fire immediately when the poll started, setting
+    // avatarLoading=false and flashing the broken fallback screen.
+    //
+    // Loading state contract:
+    //   • triggerAvatarGeneration sets avatarLoading = true
+    //   • _runAvatarLifecycle's finally clears it ONLY when not polling
+    //   • _pollUntilAvatarSettles's finally ALWAYS clears it at the end
+    // ─────────────────────────────────────────────────────────────
+
+    async _runAvatarLifecycle(abortCtrl) {
+      // Guard: if this controller was already aborted before we even started
+      // (e.g. a second triggerAvatarGeneration call cancelled us immediately),
+      // bail out silently — the newer call is already running.
+      if (abortCtrl.signal.aborted) return;
+
+      // 90s hard timeout on the fetch only — not on polling.
+      // The poll loop has its own 90s ceiling (18 × 5s).
+      const timeoutId = setTimeout(() => abortCtrl.abort('timeout'), 90_000);
+
+      let needs_poll = false;
 
       try {
         const res  = await this._fetch('/session/avatar', {
           method: 'POST',
-          signal: this._avatarAbort.signal,
+          signal: abortCtrl.signal,
         });
         const data = await res.json();
 
-        if (!res.ok) {
-          const detail         = data.detail || {};
-          this.avatarErrorCode = typeof detail === 'object' ? (detail.error_code || 'AVATAR_FAILED') : 'AVATAR_FAILED';
-          this.avatarError     = typeof detail === 'object' ? (detail.message    || 'Avatar generation failed. Please try again.') : String(detail);
-        } else {
+        if (res.ok) {
           this.avatarUrl      = data.avatar_url;
-          // FIX: default was hardcoded 'gemini' — backend now returns 'vertex'
           this.avatarProvider = data.provider || 'vertex';
+          return; // success — finally clears loading
         }
+
+        if (res.status === 409) {
+          // Server still generating from a previous request.
+          // Signal the finally block NOT to clear loading, then enter poll loop.
+          needs_poll = true;
+          return;
+        }
+
+        // Any other non-200 — surface the error
+        const detail         = data.detail || {};
+        this.avatarErrorCode = typeof detail === 'object' ? (detail.error_code || 'AVATAR_FAILED') : 'AVATAR_FAILED';
+        this.avatarError     = typeof detail === 'object' ? (detail.message    || 'Avatar generation failed. Please try again.') : String(detail);
+
       } catch (err) {
         if (err.name === 'AbortError') {
-          // Could be user-cancelled (cancelAvatarAndGoBack) or our 90s timeout
           if (!this.avatarError) {
             this.avatarErrorCode = 'AVATAR_TIMEOUT';
             this.avatarError     = 'Avatar generation timed out. Please try again.';
@@ -1432,11 +1446,87 @@ function aina() {
         this.avatarError     = 'Could not reach the backend. Please try again.';
       } finally {
         clearTimeout(timeoutId);
-        this.avatarLoading = false;
-        this._stopAvatarMsgCycle();
-        this._avatarAbort  = null;
+        this._avatarAbort = null;
+
+        // Only clear loading if we are NOT handing off to the poll loop.
+        // If needs_poll=true, _pollUntilAvatarSettles owns loading from here on.
+        if (!needs_poll) {
+          this.avatarLoading = false;
+          this._stopAvatarMsgCycle();
+        }
+      }
+
+      // ── Poll path — outside the try/finally so loading stays true ──────────
+      if (needs_poll) {
+        await this._pollUntilAvatarSettles();
       }
     },
+
+    // ─────────────────────────────────────────────────────────────
+    // AVATAR POLLING — entered only via 409 from _runAvatarLifecycle
+    // Polls GET /session every 5s until avatar_status leaves 'generating'.
+    // On 'ready': fetches fresh signed URL via idempotent POST /session/avatar.
+    // On 'failed' or exhausted retries: surfaces error.
+    // Loading state stays true throughout — only this function's finally clears it.
+    // ─────────────────────────────────────────────────────────────
+
+    async _pollUntilAvatarSettles() {
+      const MAX_POLLS     = 18;   // 18 × 5s = 90s ceiling
+      const POLL_INTERVAL = 5000;
+
+      try {
+        for (let i = 0; i < MAX_POLLS; i++) {
+          if (!this.avatarLoading) return; // user cancelled via cancelAvatarAndGoBack
+
+          await new Promise(r => setTimeout(r, POLL_INTERVAL));
+
+          if (!this.avatarLoading) return; // cancelled during sleep
+
+          try {
+            const res  = await this._fetch('/session');
+            if (!res.ok) continue;
+            const data = await res.json();
+
+            if (data.avatar_status === 'ready' && data.has_avatar) {
+              // Backend finished — fetch a fresh signed URL via the idempotent endpoint.
+              try {
+                const urlRes  = await this._fetch('/session/avatar', { method: 'POST' });
+                const urlData = await urlRes.json();
+                if (urlRes.ok) {
+                  this.avatarUrl      = urlData.avatar_url;
+                  this.avatarProvider = urlData.provider || 'vertex';
+                  return; // finally clears loading
+                }
+              } catch (_) {}
+              // URL fetch failed — surface generic error
+              this.avatarErrorCode = 'AVATAR_FAILED';
+              this.avatarError     = 'Avatar generation failed. Please try again.';
+              return;
+            }
+
+            if (data.avatar_status === 'failed') {
+              this.avatarErrorCode = 'AVATAR_FAILED';
+              this.avatarError     = 'Avatar generation failed. Please try again.';
+              return;
+            }
+
+            // Still 'generating' — keep polling
+          } catch (_) {
+            // Transient network error — keep polling
+          }
+        }
+
+        // Exhausted all poll attempts without settling
+        this.avatarErrorCode = 'AVATAR_TIMEOUT';
+        this.avatarError     = 'Avatar generation timed out. Please try again.';
+
+      } finally {
+        // Poll loop done (success, error, or user cancel) — always clear loading
+        this.avatarLoading = false;
+        this._stopAvatarMsgCycle();
+      }
+    },
+
 
     /*
       FIX: Previously set avatarUrl = null on img error, which triggered the
@@ -1464,9 +1554,15 @@ function aina() {
       if (this._extractAbort) { this._extractAbort.abort(); this._extractAbort = null; }
       if (this._avatarAbort)  { this._avatarAbort.abort();  this._avatarAbort  = null; }
 
-      try { await this._fetch('/session/reset', { method: 'POST' }); } catch (_) {}
+      try {
+        await this._fetch('/session/reset', { method: 'POST' });
+      } catch (_) {
+        // Non-fatal: best-effort reset. The cookie will expire naturally.
+        // Log so it shows in the browser console for debugging.
+        console.warn('[Aina] Session reset request failed — cookie will expire on its own.');
+      }
 
-      this.form            = { gender: '', height_cm: 170, weight_kg: '', facePhoto: null, photo: null };
+      this.form            = { gender: '', height_cm: 170, weight_kg: '70', facePhoto: null, photo: null };
       this.photoPreview    = null;
       this.facePreview     = null;
       this.result          = null;

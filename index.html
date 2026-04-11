@@ -3,11 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aina | Fit better, Sell smarter</title>
+    <title>Myrror — AI Virtual Try-On & Size Recommendations | Fit Better, Sell Smarter</title>
     
+    <!-- Primary SEO Meta Tags -->
+    <meta name="description" content="Myrror is an AI-powered virtual try-on platform that gives shoppers accurate size and fit recommendations using digital twin avatars. Reduce returns by up to 40% and boost conversions for your fashion brand.">
+    <meta name="keywords" content="Myrror, virtual try-on, AI size recommendation, digital twin avatar, fashion technology, reduce returns, online fitting room, AI body measurement, virtual fitting, size chart AI, fashion ecommerce, body scanning, 3D avatar, fit recommendation, clothing size predictor, virtual dressing room, fashion AI, ecommerce returns solution">
+    <meta name="author" content="Myrror Technologies">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://myrror.ragerstudios.com/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://myrror.ragerstudios.com/">
+    <meta property="og:title" content="Myrror — AI Virtual Try-On & Size Recommendations | Fit Better, Sell Smarter">
+    <meta property="og:description" content="Myrror helps fashion brands reduce returns and boost conversions with AI-powered virtual try-on, digital twin avatars, and accurate size recommendations.">
+    <meta property="og:image" content="https://myrror.ragerstudios.com/assets/virtual.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Myrror">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://myrror.ragerstudios.com/">
+    <meta name="twitter:title" content="Myrror — AI Virtual Try-On & Size Recommendations">
+    <meta name="twitter:description" content="AI-powered virtual try-on platform with digital twin avatars. Reduce returns, boost conversions.">
+    <meta name="twitter:image" content="https://myrror.ragerstudios.com/assets/virtual.jpg">
+    
+    <!-- Favicons & PWA -->
     <link rel="icon" type="image/png" href="assets/favicon_io/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon_io/favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon_io/apple-touch-icon.png">
+    <link rel="manifest" href="assets/favicon_io/site.webmanifest">
     <meta name="theme-color" content="#312E81">
+    <meta name="msapplication-TileColor" content="#312E81">
+    
+    <!-- JSON-LD Structured Data — Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Myrror",
+        "legalName": "Myrror Technologies",
+        "url": "https://myrror.ragerstudios.com",
+        "logo": "https://myrror.ragerstudios.com/assets/aina.png",
+        "description": "AI-powered virtual try-on platform with digital twin avatars for fashion brands. Reduce returns, boost conversions.",
+        "foundingDate": "2024",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Bengaluru",
+            "addressCountry": "IN"
+        },
+        "sameAs": [
+            "https://www.linkedin.com/company/aina3d/",
+            "https://www.instagram.com/aina_3d"
+        ]
+    }
+    </script>
+    <!-- JSON-LD Structured Data — SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Myrror",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "description": "AI-powered virtual try-on and size recommendation plugin for fashion e-commerce. Shoppers create a digital twin avatar and get accurate size and fit recommendations.",
+        "offers": [
+            {
+                "@type": "Offer",
+                "name": "Starter",
+                "price": "0",
+                "priceCurrency": "INR",
+                "description": "Free plan with up to 100 avatar generations per month"
+            },
+            {
+                "@type": "Offer",
+                "name": "Growth",
+                "price": "14999",
+                "priceCurrency": "INR",
+                "description": "Growth plan with up to 2500 avatar generations per month"
+            }
+        ],
+        "provider": {
+            "@type": "Organization",
+            "name": "Myrror Technologies"
+        }
+    }
+    </script>
+    <!-- JSON-LD Structured Data — FAQPage -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What exactly does Myrror do?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Myrror helps your customers find the right size first time with the help of their digital twin avatars and AI recommendations, so returns drop and conversions rise."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How does Myrror show up for my customers?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Your customers will see a button: Find Your Size with Myrror. One click, and the avatar and size recommendations slide in smoothly."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Will Myrror slow down my site?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Myrror is designed as a lightweight plugin that integrates seamlessly without impacting site speed, security, or UX."
+                }
+            }
+        ]
+    }
+    </script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,7 +200,7 @@
 </head>
 
 <body 
-    x-data="AinaApp()" 
+    x-data="MyrrorApp()" 
     x-init="init()" 
     class="bg-indigo-50 text-slate-800 antialiased selection:bg-coral-400 selection:text-white"
     class="min-h-screen overflow-y-auto">
@@ -95,7 +212,7 @@
             <div class="flex justify-between items-center">
                 
                 <div @click="goToPage('landing'); mobileMenuOpen = false" class="cursor-pointer pointer-events-auto z-50 relative">
-                    <img src="assets/aina.png" alt="Aina" class="h-12 w-auto object-contain">
+                    <img src="assets/aina.png" alt="Myrror" class="h-12 w-auto object-contain">
                 </div>
                 
                     <template x-if="currentPage === 'landing'">
@@ -155,7 +272,7 @@
                     </div>
                     <div>
                         <h1 class="text-5xl lg:text-7xl font-bold leading-[1.1] text-indigo-950">
-                            Aina
+                            Myrror
                         </h1>
                         <h2 class="py-2 text-2xl"><span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-coral-400"><b>Fit better, Sell smarter.</b></span></h2>
                     </div>
@@ -399,7 +516,7 @@
             <div class="max-w-7xl mx-auto px-6 relative z-10">
                 <div class="text-center mb-16">
                     <span class="text-coral-500 font-bold tracking-wider uppercase text-sm">The Engine Behind Better Fits</span>
-                    <h2 class="text-4xl font-bold text-indigo-950 mt-3">Why Aina?</h2>
+                    <h2 class="text-4xl font-bold text-indigo-950 mt-3">Why Myrror?</h2>
                 </div>
 
                 <div class="grid md:grid-cols-2 gap-8 lg:gap-12">
@@ -408,7 +525,7 @@
                         <div class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-3xl mb-6">👤</div>
                         <h3 class="text-2xl font-bold text-indigo-950 mb-4">AI-Powered Digital Twin</h3>
                         <p class="text-slate-600 leading-relaxed">
-                            Shoppers create a highly accurate AI-generated avatar using simple inputs and AINA generates a proportionally accurate digital twin that reflects their real body shape, becoming their personal, reusable trial profile across your catalog.
+                            Shoppers create a highly accurate AI-generated avatar using simple inputs and Myrror generates a proportionally accurate digital twin that reflects their real body shape, becoming their personal, reusable trial profile across your catalog.
                         </p>
                     </div>
 
@@ -446,9 +563,9 @@
             <div class="max-w-7xl mx-auto px-6 relative z-10">
                 <div class="text-center max-w-3xl mx-auto mb-20">
                     <span class="text-coral-500 font-bold tracking-wider uppercase text-sm">Seamless Experience</span>
-                    <h2 class="text-4xl font-bold text-indigo-950 mt-3 mb-6">How Aina Works?</h2>
+                    <h2 class="text-4xl font-bold text-indigo-950 mt-3 mb-6">How Myrror Works?</h2>
                     <p class="text-lg text-slate-600">
-                        AINA lives quietly behind your product pages as a lightweight plugin. Customers just tap “Find My Size with AINA”—the rest happens in a smooth five-step flow.
+                        Myrror lives quietly behind your product pages as a lightweight plugin. Customers just tap “Find My Size with Myrror”—the rest happens in a smooth five-step flow.
                     </p>
                 </div>
 
@@ -478,7 +595,7 @@
                         <div class="md:w-1/2 md:pl-12 order-2 md:order-3 pl-16 md:pl-0">
                             <h3 class="text-2xl font-bold text-indigo-900 mb-3 group-hover:text-coral-500 transition-colors">Upload Guided Images</h3>
                             <p class="text-slate-600 leading-relaxed">
-                                 Users upload front and side-profile body images plus a clear face photo, which AINA then processes through a secure, privacy-safe flow for AI analysis.
+                                 Users upload front and side-profile body images plus a clear face photo, which Myrror then processes through a secure, privacy-safe flow for AI analysis.
                             </p>
                         </div>
                     </div>
@@ -487,7 +604,7 @@
                         <div class="md:w-1/2 md:pr-12 md:text-right order-2 md:order-1 pl-16 md:pl-0">
                             <h3 class="text-2xl font-bold text-indigo-900 mb-3 group-hover:text-coral-500 transition-colors">AI Measurement Extraction & Review</h3>
                             <p class="text-slate-600 leading-relaxed">
-                                AINA extracts and displays key measurements—including chest, waist, hips, shoulders, and inseam—allowing shoppers to review and fine-tune any detail for total accuracy.
+                                Myrror extracts and displays key measurements—including chest, waist, hips, shoulders, and inseam—allowing shoppers to review and fine-tune any detail for total accuracy.
                             </p>
                         </div>
                         <div class="absolute left-6 md:left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-white border-4 border-indigo-100 flex items-center justify-center z-10 group-hover:border-coral-400 group-hover:scale-110 transition-all duration-300 shadow-sm order-1 md:order-2">
@@ -504,7 +621,7 @@
                         <div class="md:w-1/2 md:pl-12 order-2 md:order-3 pl-16 md:pl-0">
                             <h3 class="text-2xl font-bold text-indigo-900 mb-3 group-hover:text-coral-500 transition-colors">Digital Twin Generation</h3>
                             <p class="text-slate-600 leading-relaxed">
-                                Once confirmed, AINA generates a proportionally accurate AI digital twin based on the final body profile — creating a reusable, personalized trial identity.
+                                Once confirmed, Myrror generates a proportionally accurate AI digital twin based on the final body profile — creating a reusable, personalized trial identity.
                             </p>
                         </div>
                     </div>
@@ -513,7 +630,7 @@
                         <div class="md:w-1/2 md:pr-12 md:text-right order-2 md:order-1 pl-16 md:pl-0">
                             <h3 class="text-2xl font-bold text-indigo-900 mb-3 group-hover:text-coral-500 transition-colors">Smart Size & Fit Intelligence</h3>
                             <p class="text-slate-600 leading-relaxed">
-                                AINA recommends the ideal size and fit—snug, regular, or relaxed—based on your brand's unique charts, saving the shopper's profile for an effortless, confident experience across all future visits.
+                                Myrror recommends the ideal size and fit—snug, regular, or relaxed—based on your brand's unique charts, saving the shopper's profile for an effortless, confident experience across all future visits.
                             </p>
                         </div>
 
@@ -590,7 +707,7 @@
                                         <li>• &nbsp Standard widget & flows</li>
                                         <li>• &nbsp Basic dashboard</li>
                                         <li>• &nbsp Email support</li>
-                                        <li>• &nbsp "Powered by Aina" branding</li>
+                                        <li>• &nbsp "Powered by Myrror" branding</li>
                                     </ul>
                                 </div>
                             </div>
@@ -636,7 +753,7 @@
                                         <li>• &nbsp Basic body-type insights</li>
                                         <li>• &nbsp Email + POC chat support</li>
                                         <li>• &nbsp One-time onboarding</li>
-                                        <li>• &nbsp "Powered by Aina" branding</li>
+                                        <li>• &nbsp "Powered by Myrror" branding</li>
                                     </ul>
                                 </div>
                             </div>
@@ -808,11 +925,11 @@
                         
                         <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 1 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
                             <button @click="activeAccordion === 1 ? activeAccordion = null : activeAccordion = 1" class="w-full flex justify-between items-center p-5 text-left">
-                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">1. What exactly does Aina do?</span>
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">1. What exactly does Myrror do?</span>
                                 <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 1 ? 'rotate-180 text-coral-500' : ''">▼</span>
                             </button>
                             <div x-show="activeAccordion === 1" x-collapse x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
-                                Okay fine, we get it - you don’t want to read the whole landing page. Just call us! Or, if you must, here’s the short version: Aina helps your customers find the right size first time with the help of their digital twin (avatars) and AI recommendations, so returns drop and conversions rise.
+                                Okay fine, we get it - you don’t want to read the whole landing page. Just call us! Or, if you must, here’s the short version: Myrror helps your customers find the right size first time with the help of their digital twin (avatars) and AI recommendations, so returns drop and conversions rise.
                             </div>
                         </div>
 
@@ -822,7 +939,7 @@
                                 <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 2 ? 'rotate-180 text-coral-500' : ''">▼</span>
                             </button>
                             <div x-show="activeAccordion === 2" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
-                                Your customers will see a button: ‘Find Your Size with Aina.’ One click, and the avatar and size recommendations slide in smoothly. <br><span class="italic text-coral-500 block mt-2 text-xs">(singing to ourselves; I AM A SMOOTH OPERATOR)</span>
+                                Your customers will see a button: ‘Find Your Size with Myrror.’ One click, and the avatar and size recommendations slide in smoothly. <br><span class="italic text-coral-500 block mt-2 text-xs">(singing to ourselves; I AM A SMOOTH OPERATOR)</span>
                             </div>
                         </div>
 
@@ -888,7 +1005,7 @@
                                 <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 8 ? 'rotate-180 text-coral-500' : ''">▼</span>
                             </button>
                             <div x-show="activeAccordion === 8" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
-                                Currently, Aina works as a plugin for your website. If your brand has a mobile app, we’re not live on apps just yet, but we’re working towards expanding to mobile platforms. Hang tight, we’re not ghosting you; we’re just gonna be fashionably late.
+                                Currently, Myrror works as a plugin for your website. If your brand has a mobile app, we’re not live on apps just yet, but we’re working towards expanding to mobile platforms. Hang tight, we’re not ghosting you; we’re just gonna be fashionably late.
                             </div>
                         </div>
 
@@ -924,7 +1041,7 @@
 
                          <div class="group border border-slate-200 rounded-2xl bg-white overflow-hidden transition-all duration-200 hover:shadow-md" :class="activeAccordion === 12 ? 'ring-2 ring-indigo-100 shadow-lg' : ''">
                             <button @click="activeAccordion === 12 ? activeAccordion = null : activeAccordion = 12" class="w-full flex justify-between items-center p-5 text-left">
-                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">12. Will Aina slow down my site?</span>
+                                <span class="font-bold text-indigo-900 group-hover:text-coral-500 transition-colors">12. Will Myrror slow down my site?</span>
                                 <span class="transform transition-transform duration-300 text-indigo-300" :class="activeAccordion === 12 ? 'rotate-180 text-coral-500' : ''">▼</span>
                             </button>
                             <div x-show="activeAccordion === 12" x-transition class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-50">
@@ -963,7 +1080,7 @@
                     
                     <div class="space-y-6">
                         <div class="flex items-center m">
-                            <img src="assets/aina_white.png" alt="Aina" class="h-14 w-auto object-contain opacity-90">
+                            <img src="assets/aina_white.png" alt="Myrror" class="h-14 w-auto object-contain opacity-90">
                         </div>
                         <p class="text-indigo-300 text-sm leading-relaxed max-w-xs">
                             Helping fashion brands reduce returns and boost conversions with AI-powered virtual try-on technology.
@@ -1023,7 +1140,7 @@
                 </div>
                 
                 <div class="border-t border-indigo-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-indigo-400">
-                    <p>&copy; 2025 Aina Technologies. All rights reserved.</p>
+                    <p>&copy; 2025 Myrror Technologies. All rights reserved.</p>
                     <p class="flex items-center gap-1">Made with <span class="text-coral-500 text-lg leading-none">♥</span> in India</p>
                 </div>
             </div>
@@ -1053,7 +1170,7 @@
                 <div class="relative order-1 lg:order-2">
                     <div class="relative rounded-[2.5rem] overflow-clip shadow-2xl border-[6px] border-white transform lg:rotate-2 hover:rotate-0 transition duration-700 ease-out group">
                         <img class="rounded-[2.5rem]" src="assets/virtual.jpg" 
-                             alt="Aina Virtual Try On Technology" 
+                             alt="Myrror Virtual Try On Technology" 
                              class="w-full h-[500px] object-cover filter brightness-90 group-hover:brightness-100 transition duration-500 scale-105 group-hover:scale-100">
                         
                         <div class="absolute inset-0 bg-gradient-to-t from-indigo-950/80 via-transparent to-transparent"></div>
@@ -1074,7 +1191,7 @@
                 </div>
 
                 <div class="order-2 lg:order-1">
-                    <span class="inline-block py-1 px-3 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold tracking-widest uppercase mb-6">About Aina</span>
+                    <span class="inline-block py-1 px-3 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold tracking-widest uppercase mb-6">About Myrror</span>
                     
                     <h1 class="text-4xl lg:text-6xl font-bold text-indigo-950 mb-8 leading-[1.1]">
                         The New Language <br>
@@ -1083,7 +1200,7 @@
                     
                     <div class="space-y-6 text-lg text-slate-600 leading-relaxed">
                         <p>
-                            We started Aina when one thing became impossible to ignore: <span class="font-bold text-indigo-900 bg-indigo-50 px-1 rounded">online sizing was a guessing game.</span>
+                            We started Myrror when one thing became impossible to ignore: <span class="font-bold text-indigo-900 bg-indigo-50 px-1 rounded">online sizing was a guessing game.</span>
                         </p>
                         <p>
                             Buying clothes online meant ordering three sizes to keep one, frustrated shoppers and bleeding brand profits. It became clear: someone needed to solve this. That “someone” ended up being us.
@@ -1133,7 +1250,7 @@
                         <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & CEO • Business Growth & GTM</p>
                         
                         <p class="text-slate-600 mb-8 leading-relaxed text-sm">
-                            Arihant runs on instinct, obsession and a slightly alarming level of excitement for anything that moves a metric. He’s the team’s north star, spotting what to build, what to kill and what to scale before the rest of us even get coffee. And beneath all that chaos-energy is a very real engine: he turns India’s sizing drama into a grounded growth strategy, sharper funnels and actual revenue gained for every Aina partner brand.
+                            Arihant runs on instinct, obsession and a slightly alarming level of excitement for anything that moves a metric. He’s the team’s north star, spotting what to build, what to kill and what to scale before the rest of us even get coffee. And beneath all that chaos-energy is a very real engine: he turns India’s sizing drama into a grounded growth strategy, sharper funnels and actual revenue gained for every Myrror partner brand.
                         </p>
 
                         <div class="flex gap-4 pt-6 border-t border-slate-100">
@@ -1158,7 +1275,7 @@
                         <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & CMO • Fashion & Brand Partnership</p>
                         
                         <p class="text-slate-600 mb-8 leading-relaxed text-sm">
-                            Amrita is our in-house fashion brain and brand therapist. She doesn’t just understand silhouettes and fits- she understands why Indian shoppers pick, return, repeat-buy and ghost brands. She turns those customer patterns into strategy for every partner brand, helping them design smarter and sell faster. And because she reads the market the way most people read Instagram captions, she keeps Aina ahead of the curve.
+                            Amrita is our in-house fashion brain and brand therapist. She doesn’t just understand silhouettes and fits- she understands why Indian shoppers pick, return, repeat-buy and ghost brands. She turns those customer patterns into strategy for every partner brand, helping them design smarter and sell faster. And because she reads the market the way most people read Instagram captions, she keeps Myrror ahead of the curve.
                         </p>
 
                         <div class="flex gap-4 pt-6 border-t border-slate-100">
@@ -1183,7 +1300,7 @@
                         <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & C3DO • 3D & Avatar System Designer</p>
                         
                         <p class="text-slate-600 mb-8 leading-relaxed text-sm">
-                            Adi is the 3D nerd for whom this entire universe is a playground. He’s spent years mastering digital humans, garment simulation and pixel-perfect detailing- the kind of details that separate a render from reality. Thanks to him, Aina avatars don’t just look good, they move, drape and crease like real clothes on real bodies, so shoppers can skip the fitting room and still get the fit right.
+                            Adi is the 3D nerd for whom this entire universe is a playground. He’s spent years mastering digital humans, garment simulation and pixel-perfect detailing- the kind of details that separate a render from reality. Thanks to him, Myrror avatars don’t just look good, they move, drape and crease like real clothes on real bodies, so shoppers can skip the fitting room and still get the fit right.
                         </p>
 
                         <div class="flex gap-4 pt-6 border-t border-slate-100">
@@ -1208,7 +1325,7 @@
                         <p class="text-xs font-bold text-coral-500 uppercase tracking-widest mb-4">Co-founder & CTO • Tech & Product Engineer</p>
                         
                         <p class="text-slate-600 mb-8 leading-relaxed text-sm">
-                            Shubhansh is quite a deadly engineer behind the scenes. He’s built and shipped across stacks, but his real superpower is knowing exactly how to weaponize AI and time, because for him, both are money. If there’s a bottleneck, he’ll find it; if there’s a solution, he’s already built it. And thanks to that terrifying efficiency, Aina slips into a brand’s site without touching speed, security, or UX. Marketers see uplift, devs stay calm, and customers trust it instantly.
+                            Shubhansh is quite a deadly engineer behind the scenes. He’s built and shipped across stacks, but his real superpower is knowing exactly how to weaponize AI and time, because for him, both are money. If there’s a bottleneck, he’ll find it; if there’s a solution, he’s already built it. And thanks to that terrifying efficiency, Myrror slips into a brand’s site without touching speed, security, or UX. Marketers see uplift, devs stay calm, and customers trust it instantly.
                         </p>
 
                         <div class="flex gap-4 pt-6 border-t border-slate-100">

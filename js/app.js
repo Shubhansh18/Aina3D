@@ -1,4 +1,4 @@
-function AinaApp() {
+function MyrrorApp() {
     return {
         currentPage: 'landing',
         mobileMenuOpen: false,

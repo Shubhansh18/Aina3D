@@ -3,7 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aina — Try Demo</title>
+<title>Myrror — Try Virtual Try-On Demo | AI Size Recommendation</title>
+
+<!-- SEO Meta Tags -->
+<meta name="description" content="Try Myrror's AI-powered virtual try-on demo. Upload your photo, get accurate body measurements, generate a digital twin avatar, and receive personalized size recommendations instantly.">
+<meta name="keywords" content="Myrror demo, virtual try-on demo, AI size recommendation, digital twin avatar, body measurement AI, online fitting room demo, fashion tech demo">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://myrror.ragerstudios.com/demo.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://myrror.ragerstudios.com/demo.html">
+<meta property="og:title" content="Myrror — Try Virtual Try-On Demo">
+<meta property="og:description" content="Experience AI-powered virtual try-on. Upload your photo, get body measurements, and receive personalized size recommendations.">
+<meta property="og:image" content="https://myrror.ragerstudios.com/assets/virtual.jpg">
+<meta property="og:site_name" content="Myrror">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Myrror — Try Virtual Try-On Demo">
+<meta name="twitter:description" content="Experience AI-powered virtual try-on. Upload your photo, get body measurements, and receive personalized size recommendations.">
+<meta name="twitter:image" content="https://myrror.ragerstudios.com/assets/virtual.jpg">
+
+<!-- Favicons -->
+<link rel="icon" type="image/png" href="assets/favicon_io/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/favicon_io/apple-touch-icon.png">
+<meta name="theme-color" content="#312E81">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
@@ -84,13 +109,13 @@
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 </head>
 
-<body class="bg-indigo-50 min-h-screen font-sans" x-data="aina()" x-init="init()">
+<body class="bg-indigo-50 min-h-screen font-sans" x-data="myrror()" x-init="init()">
 
   <!-- ═══ NAV ═══ -->
   <nav class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100">
     <div class="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
       <a href="/" class="flex items-center gap-2">
-        <img src="assets/aina.png" alt="Aina" class="h-8 w-auto object-contain"
+        <img src="assets/aina.png" alt="Myrror" class="h-8 w-auto object-contain"
           onerror="this.style.display='none'">
       </a>
 
@@ -821,7 +846,7 @@
                 </div>
                 <h3 class="font-black text-indigo-950 mb-1 text-sm">AI Size Recommender</h3>
                 <p class="text-xs text-slate-500 leading-relaxed">
-                  Aina matches your measurements to the brand's specific size chart and tells you exactly what to order — with a fit preference (snug / regular / relaxed).
+                  Myrror matches your measurements to the brand's specific size chart and tells you exactly what to order — with a fit preference (snug / regular / relaxed).
                 </p>
               </div>
             </div>
@@ -873,7 +898,7 @@
   </div>
 
   <p class="text-center text-[10px] text-slate-300 pb-8 uppercase tracking-widest font-semibold">
-    Aina Internal v1 · Not for distribution
+    Myrror Internal v1 · Not for distribution
   </p>
 
 <script>
@@ -882,7 +907,7 @@
 const API_BASE = 'https://ainaapi.ragerstudios.com';
 // ────────────────────────────────────────────────────────────────────────────
 
-function aina() {
+function myrror() {
   return {
 
     // ─────────────────────────────────────────────────────────────
@@ -1559,7 +1584,7 @@ function aina() {
       } catch (_) {
         // Non-fatal: best-effort reset. The cookie will expire naturally.
         // Log so it shows in the browser console for debugging.
-        console.warn('[Aina] Session reset request failed — cookie will expire on its own.');
+        console.warn('[Myrror] Session reset request failed — cookie will expire on its own.');
       }
 
       this.form            = { gender: '', height_cm: 170, weight_kg: '70', facePhoto: null, photo: null };
